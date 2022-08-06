@@ -1,0 +1,16 @@
+name: PixelPainter
+author: Despical
+version: ${project.version}
+api-version: 1.13
+main: me.despical.pixelpainter.Main
+
+permissions:
+  pp.*:
+    default: op
+    children:
+      pp.create: true
+      pp.delete: true
+      pp.undo: true
+      pp.list: true
+      pp.help: true
+      pp.download: true
