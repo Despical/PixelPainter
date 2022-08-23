@@ -2,6 +2,7 @@ package me.despical.pixelpainter;
 
 import me.despical.commandframework.CommandFramework;
 import me.despical.commons.compat.VersionResolver;
+import me.despical.commons.util.UpdateChecker;
 import me.despical.pixelpainter.commands.MainCommands;
 import me.despical.pixelpainter.utils.FileUtils;
 import me.despical.pixelpainter.utils.RGBBlockColor;
@@ -35,6 +36,7 @@ public class Main extends JavaPlugin {
 		new Metrics(this, 16044);
 
 		loadSupportedMaterials();
+		checkForUpdates();
 	}
 
 	private void loadSupportedMaterials() {
@@ -69,6 +71,15 @@ public class Main extends JavaPlugin {
 				}
 			}
 		}
+	}
+
+	private void checkForUpdates() {
+		UpdateChecker.init(this, 104770).requestUpdateCheck().whenComplete((result, exception) -> {
+			if (result.requiresUpdate()) {
+				log("An update is released, update plugin to " + result.getNewestVersion() + " (current: " + getDescription().getVersion() + ")");
+				log("New version: https://www.spigotmc.org/resources/pixel-painter-1-8-1-19.104770/");
+			}
+		});
 	}
 
 	public void log(String message) {
