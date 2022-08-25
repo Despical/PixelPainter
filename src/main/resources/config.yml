@@ -1,9 +1,25 @@
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+#                                                                     #
+#       This plugin was planned as to be in premium category but      #
+#    due to issues that I have faced about payment system I decided   #
+#  to make it free for everyone but you can still support development #
+#     by donating me through Patreon (https://patreon.com/despical)   #
+#       Even 1$ is like 100$ for me, thanks for your support! <3      #
+#                                                                     #
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+# Enable custom materials.
 Custom-Materials-Enabled: false
 
+# You can add new items to this list.
 Custom-Materials:
   - STONE
   - NETHERRACK
 
+# Supported materials for the version you're using.
+# You can add new items before I drop a new update.
 FULL_MATERIAL_LIST:
   - OXIDIZED_CUT_COPPER
   - CUT_COPPER_STAIRS

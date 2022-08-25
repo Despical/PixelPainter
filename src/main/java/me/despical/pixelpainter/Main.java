@@ -37,6 +37,8 @@ public class Main extends JavaPlugin {
 
 		loadSupportedMaterials();
 		checkForUpdates();
+
+		log("Initialization finished. Please consider donating: https://patreon.com/despical");
 	}
 
 	private void loadSupportedMaterials() {
