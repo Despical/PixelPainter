@@ -1,5 +1,5 @@
 ---
-name: Feature Request
+name: Pull Request
 about: Create pull requests to help us.
 title: "[Category] Short description"
 labels: ''
