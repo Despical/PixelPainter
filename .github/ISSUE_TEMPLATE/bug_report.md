@@ -1,5 +1,5 @@
 ---
-name: Bug report
+name: Bug Report
 about: Help us with issues related Pixel Painter
 title: "[Category] Short description"
 labels: ''
