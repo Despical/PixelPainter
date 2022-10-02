@@ -25,7 +25,7 @@ public class TabCompleter {
 
 	public TabCompleter(Main plugin) {
 		this.plugin = plugin;
-		plugin.getCommandFramework().registerCommands(this);
+		this.plugin.getCommandFramework().registerCommands(this);
 	}
 
 	@Completer(
@@ -34,6 +34,7 @@ public class TabCompleter {
 	public List<String> onTabComplete(CommandArguments arguments) {
 		final List<String> completions = new ArrayList<>(), commands = plugin.getCommandFramework().getCommands().stream().map(cmd -> cmd.name().replace(arguments.getLabel() + '.', "")).collect(Collectors.toList());
 		final String args[] = arguments.getArguments(), arg = args[0];
+
 		commands.remove("pp");
 
 		if (args.length == 1) {

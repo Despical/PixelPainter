@@ -19,7 +19,8 @@ public class BlockTypeSnapshot {
 
 	public BlockTypeSnapshot(Location start, Location stop) {
 		this.originalBlockStates = new HashMap<>();
-		World world = start.getWorld();
+
+		final World world = start.getWorld();
 
 		for (int x = Math.min(start.getBlockX(), stop.getBlockX()); x < Math.max(start.getBlockX(), stop.getBlockX()) + 1; x++) {
 			for (int y = Math.min(start.getBlockY(), stop.getBlockY()); y < Math.min(256, Math.max(start.getBlockY(), stop.getBlockY())) + 1; y++) {
@@ -33,7 +34,7 @@ public class BlockTypeSnapshot {
 	}
 
 	public void undo() {
-		Map<Location, BlockState> newOnes = new HashMap<>();
+		final Map<Location, BlockState> newOnes = new HashMap<>();
 
 		for (Map.Entry<Location, BlockState> e : originalBlockStates.entrySet()) {
 			if (!e.getKey().getBlock().getState().equals(e.getValue())) {

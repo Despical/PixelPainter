@@ -2,6 +2,7 @@ package me.despical.pixelpainter.commands;
 
 import me.despical.commons.util.Strings;
 import me.despical.pixelpainter.Main;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -14,6 +15,7 @@ public interface CommandImpl {
 
 	Main plugin = JavaPlugin.getPlugin(Main.class);
 	String prefix = "&7[&f&lPixel Painter&7] &f";
+	ChatColor bold = ChatColor.BOLD;
 
 	default void register(Object object) {
 		plugin.getCommandFramework().registerCommands(object);

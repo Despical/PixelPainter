@@ -31,8 +31,6 @@ import static me.despical.commandframework.Command.SenderType.PLAYER;
  */
 public class MainCommands implements CommandImpl {
 
-	private final ChatColor bold = ChatColor.BOLD;
-
 	@Command(
 			name = "pp"
 	)

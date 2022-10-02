@@ -21,6 +21,7 @@ public class UndoUtils {
 		while (savedSnapshots.containsKey(test)) {
 			test += "(" + ++id + ")";
 		}
+
 		return test;
 	}
 

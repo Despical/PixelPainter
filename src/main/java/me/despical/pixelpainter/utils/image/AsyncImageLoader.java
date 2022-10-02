@@ -62,8 +62,8 @@ public class AsyncImageLoader extends Image {
 	public void loadImage(boolean allowUndo) {
 		sendMessage("Requested async image loading by " + player);
 
-		Location start = getBlockAt(0, bufferedImage.getWidth(), bufferedImage.getHeight());
-		Location end = getBlockAt(0, -1, 0).subtract(0, 1, 0);
+		final Location start = getBlockAt(0, bufferedImage.getWidth(), bufferedImage.getHeight());
+		final Location end = getBlockAt(0, -1, 0).subtract(0, 1, 0);
 
 		if (allowUndo) {
 			UndoUtils.addNewSnapshot(name, start, end);
