@@ -30,6 +30,7 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.checkerframework.checker.units.qual.A;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -44,6 +45,10 @@ public class AsyncImageLoader extends Image {
 	private final String name;
 	private final Pixel[][] result;
 	private final BufferedImage bufferedImage;
+
+	public AsyncImageLoader(Main plugin, Pixel[][] result, Player player, Location minCorner, Direction direction, BufferedImage bufferedImage, boolean enableTrans) {
+		this (plugin, "", result, player, minCorner, direction, bufferedImage, enableTrans);
+	}
 
 	public AsyncImageLoader(Main plugin, String name, Pixel[][] result, Player player, Location minCorner, Direction direction, BufferedImage bufferedImage, boolean enableTrans) {
 		this.plugin = plugin;

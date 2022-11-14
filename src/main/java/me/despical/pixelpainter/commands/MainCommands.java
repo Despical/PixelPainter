@@ -3,6 +3,7 @@ package me.despical.pixelpainter.commands;
 import me.despical.commandframework.Command;
 import me.despical.commandframework.CommandArguments;
 import me.despical.commons.util.Strings;
+import me.despical.pixelpainter.utils.SkinCreator;
 import me.despical.pixelpainter.utils.data.AtomicHolder;
 import me.despical.pixelpainter.utils.image.AsyncImageLoader;
 import me.despical.pixelpainter.utils.Direction;
@@ -15,8 +16,10 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -31,12 +34,59 @@ import static me.despical.commandframework.Command.SenderType.PLAYER;
  */
 public class MainCommands implements CommandImpl {
 
+	private static final String NAME_URL = "https://api.mojang.com/users/profiles/minecraft/";
+
+	public static String getUUIDFromName(String name) {
+		try {
+			URL url = new URL(NAME_URL + name);
+			BufferedReader br = new BufferedReader(new InputStreamReader(url.openStream()));
+			List<String> list = new ArrayList<>();
+
+			String input;
+
+			while ((input = br.readLine()) != null) {
+				list.add(input);
+			}
+
+			br.close();
+
+			for (String s : list) {
+				return s.split("\"id\":\"")[1].split("\"")[0];
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		return null;
+	}
+
 	@Command(
 			name = "pp"
 	)
 	public void ppCommand(CommandArguments arguments) {
 		arguments.sendMessage(bold + "Welcome to Pixel Painter plugin!");
 		arguments.sendMessage("Use /pp help command to list commands.");
+	}
+
+	@Command(
+		name = "pp.skin"
+	)
+	public void skinCommand(CommandArguments arguments) {
+		Player player = arguments.getSender();
+		String uuid = player.getUniqueId().toString();
+
+		try {
+			SkinCreator.createStatue(SkinCreator.getSkin(getUUIDFromName(arguments.getArgument(0))), player.getLocation(), Direction.UP_NORTH);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	private void createSkin(Player player, BufferedImage bufferedImage, Direction direction, int height, boolean enableTrans, String name) {
+		bufferedImage = RGBBlockColor.resize(bufferedImage, (int) (bufferedImage.getWidth() * (((double) height) * 2 / bufferedImage.getHeight())), height * 2);
+		RGBBlockColor.Pixel[][] result = RGBBlockColor.convertTo2DWithoutUsingGetRGB(bufferedImage);
+
+		new AsyncImageLoader(plugin, name, result, player, player.getLocation().clone(), direction, bufferedImage, enableTrans).loadImage(true);
 	}
 
 	@Command(
