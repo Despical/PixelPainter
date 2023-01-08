@@ -6,7 +6,7 @@
 
     <groupId>me.despical</groupId>
     <artifactId>pixel-painter</artifactId>
-    <version>1.0.2</version>
+    <version>1.0.3</version>
 
     <properties>
         <java.version>1.8</java.version>
@@ -48,12 +48,12 @@
         <dependency>
             <groupId>com.github.Despical</groupId>
             <artifactId>Commons</artifactId>
-            <version>1.5.3</version>
+            <version>1.5.5</version>
         </dependency>
         <dependency>
             <groupId>com.github.Despical</groupId>
             <artifactId>CommandFramework</artifactId>
-            <version>1.1.3</version>
+            <version>1.1.4</version>
         </dependency>
         <dependency>
             <groupId>org.bstats</groupId>
@@ -107,7 +107,7 @@
                             <relocations>
                                 <relocation>
                                     <pattern>org.bstats</pattern>
-                                    <shadedPattern>me.despical.pixelpainter.util</shadedPattern>
+                                    <shadedPattern>me.despical.pixelpainter.utils</shadedPattern>
                                 </relocation>
                             </relocations>
                             <createDependencyReducedPom>false</createDependencyReducedPom>
