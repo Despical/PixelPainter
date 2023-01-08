@@ -9,7 +9,6 @@ import me.despical.pixelpainter.utils.Direction;
 import me.despical.pixelpainter.utils.FileUtils;
 import me.despical.pixelpainter.utils.RGBBlockColor;
 import me.despical.pixelpainter.utils.undo.UndoUtils;
-import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -168,7 +167,7 @@ public class MainCommands implements CommandImpl {
 					String fileName = holder.getString();
 
 					try {
-						URL url = new URL((link));
+						URL url = new URL(link);
 
 						sendMessage(player, "Downloading image (%s) requested by %s...", fileName, player.getName());
 
@@ -235,7 +234,7 @@ public class MainCommands implements CommandImpl {
 		}
 
 		sendMessage(player, files.isEmpty() ? "The images folder is empty!" :
-											  "Existing image files: " + ChatColor.RESET + String.join(", ", files));
+											  "Existing image files: &r" + String.join(", ", files));
 	}
 
 	@Command(
