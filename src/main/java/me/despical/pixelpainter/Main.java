@@ -56,7 +56,7 @@ public class Main extends JavaPlugin {
 		loadSupportedMaterials();
 		checkForUpdates();
 
-		log("Initialization finished. Please consider donating: https://patreon.com/despical");
+		log("Initialization finished. If you'd like to donate: https://patreon.com/despical");
 	}
 
 	private void loadSupportedMaterials() {
@@ -97,7 +97,7 @@ public class Main extends JavaPlugin {
 		UpdateChecker.init(this, 104770).requestUpdateCheck().whenComplete((result, exception) -> {
 			if (result.requiresUpdate()) {
 				log("An update is released, update plugin to " + result.getNewestVersion() + " (current: " + getDescription().getVersion() + ")");
-				log("New version: https://www.spigotmc.org/resources/pixel-painter-1-8-1-19.104770/");
+				log("New version: https://www.spigotmc.org/resources/pixel-painter-1-8-1-19-4.104770/");
 			}
 		});
 	}
