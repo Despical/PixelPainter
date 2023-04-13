@@ -49,7 +49,9 @@ import static me.despical.commandframework.Command.SenderType.PLAYER;
 public class MainCommands implements CommandImpl {
 
 	@Command(
-			name = "pp"
+		name = "pp",
+		usage = "/wm help",
+		desc = "Main command of Pixel Painter plugin"
 	)
 	public void ppCommand(CommandArguments arguments) {
 		arguments.sendMessage(bold + "Welcome to Pixel Painter plugin!");
@@ -57,11 +59,11 @@ public class MainCommands implements CommandImpl {
 	}
 
 	@Command(
-			name = "pp.create",
-			permission = "pp.create",
-			usage = "/pp create <image file> <direction> <height>",
-			desc = "Creates a in-game image from specified image file in the specified direction and height.",
-			senderType = PLAYER
+		name = "pp.create",
+		permission = "pp.create",
+		usage = "/pp create <image file> <direction> <height>",
+		desc = "Creates a in-game image from specified image file in the specified direction and height.",
+		senderType = PLAYER
 	)
 	public void createCommand(CommandArguments arguments) {
 		Player player = arguments.getSender();
@@ -114,11 +116,11 @@ public class MainCommands implements CommandImpl {
 	}
 
 	@Command(
-			name = "pp.undo",
-			permission = "pp.undo",
-			usage = "/pp undo <loaded image>",
-			desc = "Undo the loaded image.",
-			senderType = PLAYER
+		name = "pp.undo",
+		permission = "pp.undo",
+		usage = "/pp undo <loaded image>",
+		desc = "Undo the loaded image.",
+		senderType = PLAYER
 	)
 	public void undoImageCommand(CommandArguments arguments) {
 		Player player = arguments.getSender();
@@ -141,11 +143,11 @@ public class MainCommands implements CommandImpl {
 	}
 
 	@Command(
-			name = "pp.download",
-			permission = "pp.download",
-			usage = "/pp download <image name> <image URL>",
-			desc = "Download image to load.",
-			senderType = PLAYER
+		name = "pp.download",
+		permission = "pp.download",
+		usage = "/pp download <image name> <image URL>",
+		desc = "Download image to load.",
+		senderType = PLAYER
 	)
 	public void downloadImageCommand(CommandArguments arguments) {
 		Player player = arguments.getSender();
@@ -208,11 +210,11 @@ public class MainCommands implements CommandImpl {
 	}
 
 	@Command(
-			name = "pp.delete",
-			permission = "pp.delete",
-			usage = "/pp delete <image file>",
-			desc = "Delete the specified image file from images directory.",
-			senderType = PLAYER
+		name = "pp.delete",
+		permission = "pp.delete",
+		usage = "/pp delete <image file>",
+		desc = "Delete the specified image file from images directory.",
+		senderType = PLAYER
 	)
 	public void deleteImageFileCommand(CommandArguments arguments) {
 		Player player = arguments.getSender();
@@ -235,11 +237,11 @@ public class MainCommands implements CommandImpl {
 	}
 
 	@Command(
-			name = "pp.list",
-			permission = "pp.list",
-			usage = "/pp list",
-			desc = "Get a list of existing image files in the directory.",
-			senderType = PLAYER
+		name = "pp.list",
+		permission = "pp.list",
+		usage = "/pp list",
+		desc = "Get a list of existing image files in the directory.",
+		senderType = PLAYER
 	)
 	public void listFilesCommand(CommandArguments arguments) {
 		Player player = arguments.getSender();
@@ -256,10 +258,10 @@ public class MainCommands implements CommandImpl {
 	}
 
 	@Command(
-			name = "pp.help",
-			permission = "pp.help",
-			usage = "/pp help",
-			desc = "Get list of commands and their descriptions."
+		name = "pp.help",
+		permission = "pp.help",
+		usage = "/pp help",
+		desc = "Get list of commands and their descriptions."
 	)
 	public void helpCommand(CommandArguments arguments) {
 		arguments.sendMessage(bold + "*** Pixel Painter Commands ***");
@@ -274,11 +276,11 @@ public class MainCommands implements CommandImpl {
 	}
 
 	@Command(
-			name = "pp.specs",
-			permission = "pp.specs",
-			usage = "/pp specs <image file>",
-			desc = "Get image's width and height values.",
-			senderType = PLAYER
+		name = "pp.specs",
+		permission = "pp.specs",
+		usage = "/pp specs <image file>",
+		desc = "Get image's width and height values.",
+		senderType = PLAYER
 	)
 	public void imageSpecsCommand(CommandArguments arguments) {
 		Player player = arguments.getSender();
