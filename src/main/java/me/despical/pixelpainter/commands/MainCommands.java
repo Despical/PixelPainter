@@ -66,15 +66,15 @@ public class MainCommands implements CommandImpl {
 		senderType = PLAYER
 	)
 	public void createCommand(CommandArguments arguments) {
-		Player player = arguments.getSender();
-		int length = arguments.getArgumentsLength();
+		final Player player = arguments.getSender();
+		final int length = arguments.getArgumentsLength();
 
 		if (length == 0) {
 			sendMessage(player, "Please provide a image file!");
 			return;
 		}
 
-		String imageName = arguments.getArgument(0);
+		final String imageName = arguments.getArgument(0);
 
 		if (!FileUtils.checkIfImageExists(imageName)) {
 			sendMessage(player, "&cNo image found called %s in the images folder.", imageName);
@@ -86,8 +86,8 @@ public class MainCommands implements CommandImpl {
 			return;
 		}
 
-		String directionName = arguments.getArgument(1);
-		Direction direction = Direction.getDirection(directionName);
+		final String directionName = arguments.getArgument(1);
+		final Direction direction = Direction.getDirection(directionName);
 
 		if (direction == null) {
 			sendMessage(player, "Please provide a valid direction!");
@@ -105,8 +105,8 @@ public class MainCommands implements CommandImpl {
 			sendMessage(player, "Specified height (%d) is greater than world's maximum height value, this can cause image can not be rendered at all.", height);
 		}
 
-		boolean enableTrans = length > 3 && Boolean.parseBoolean(arguments.getArgument(3));
-		File loadedImage = FileUtils.getImageFile(imageName);
+		final boolean enableTrans = length > 3 && Boolean.parseBoolean(arguments.getArgument(3));
+		final File loadedImage = FileUtils.getImageFile(imageName);
 
 		try  {
 			createImage(player, ImageIO.read(loadedImage), direction, height, enableTrans, loadedImage.getName());
@@ -123,14 +123,14 @@ public class MainCommands implements CommandImpl {
 		senderType = PLAYER
 	)
 	public void undoImageCommand(CommandArguments arguments) {
-		Player player = arguments.getSender();
+		final Player player = arguments.getSender();
 
 		if (arguments.isArgumentsEmpty()) {
 			sendMessage(player, "Please provide a image name to undo!");
 			return;
 		}
 
-		String imageName = arguments.getArgument(0);
+		final String imageName = arguments.getArgument(0);
 
 		if (!UndoUtils.snapshotExists(imageName)) {
 			sendMessage(player, "&cNo loaded image found called %s!", imageName);
@@ -150,8 +150,8 @@ public class MainCommands implements CommandImpl {
 		senderType = PLAYER
 	)
 	public void downloadImageCommand(CommandArguments arguments) {
-		Player player = arguments.getSender();
-		int length = arguments.getArgumentsLength();
+		final Player player = arguments.getSender();
+		final int length = arguments.getArgumentsLength();
 
 		if (length == 0) {
 			sendMessage(player, "Please provide a image name to save the file.");
@@ -217,21 +217,21 @@ public class MainCommands implements CommandImpl {
 		senderType = PLAYER
 	)
 	public void deleteImageFileCommand(CommandArguments arguments) {
-		Player player = arguments.getSender();
+		final Player player = arguments.getSender();
 
 		if (arguments.isArgumentsEmpty()) {
 			sendMessage(player, "Please provide a image name to delete!");
 			return;
 		}
 
-		String fileName = arguments.getArgument(0);
+		final String fileName = arguments.getArgument(0);
 
 		if (!FileUtils.checkIfImageExists(fileName)) {
 			sendMessage(player, "&cThere is no image file called %s in the directory!", fileName);
 			return;
 		}
 
-		File file = FileUtils.getImageFile(fileName);
+		final File file = FileUtils.getImageFile(fileName);
 		sendMessage(player, file.delete() ? "The image file called %s is successfully deleted." :
 											"&cSomething gone wrong while deleting the image file!", fileName);
 	}
@@ -244,8 +244,8 @@ public class MainCommands implements CommandImpl {
 		senderType = PLAYER
 	)
 	public void listFilesCommand(CommandArguments arguments) {
-		Player player = arguments.getSender();
-		List<String> files = new ArrayList<>();
+		final Player player = arguments.getSender();
+		final List<String> files = new ArrayList<>();
 
 		for (File file : FileUtils.IMAGES.listFiles()) {
 			if (file.isFile()) {

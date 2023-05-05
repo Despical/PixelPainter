@@ -56,7 +56,7 @@ public class Main extends JavaPlugin {
 		loadSupportedMaterials();
 		checkForUpdates();
 
-		log("Initialization finished. If you'd like to donate: https://patreon.com/despical");
+		log("Initialization finished. If you'd like to donate: https://buymeacoffee.com/despical");
 	}
 
 	private void loadSupportedMaterials() {

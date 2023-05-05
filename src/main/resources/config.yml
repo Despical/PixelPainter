@@ -1,14 +1,14 @@
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-#                                                                     #
-#       This plugin was planned as to be in premium category but      #
-#    due to issues that I have faced about payment system I decided   #
-#  to make it free for everyone but you can still support development #
-#     by donating me through Patreon (https://patreon.com/despical)   #
-#       Even 1$ is like 100$ for me, thanks for your support! <3      #
-#                                                                     #
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+#                                                             #
+#                        Pixel Painter                        #
+#                          Despical                           #
+#                                                             #
+#              https://www.patreon.com/despical               #
+#            https://www.buymeacoffee.com/despical            #
+#                                                             #
+#            Donations are really appreciated! <3             #
+#                                                             #
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 # Enable custom materials.
 Custom-Materials-Enabled: false
