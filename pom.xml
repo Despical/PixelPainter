@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>me.despical</groupId>
     <artifactId>pixel-painter</artifactId>
-    <version>1.0.7</version>
+    <version>1.0.8</version>
 
     <properties>
         <java.version>1.8</java.version>
@@ -66,8 +66,6 @@
                 <filtering>true</filtering>
             </resource>
         </resources>
-
-        <defaultGoal>clean package -Dmaven.javadoc.skip=true</defaultGoal>
 
         <plugins>
             <plugin>

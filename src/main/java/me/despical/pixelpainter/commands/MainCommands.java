@@ -143,6 +143,53 @@ public class MainCommands implements CommandImpl {
 	}
 
 	@Command(
+		name = "pp.howmanyblocks",
+		permission = "pp.howmanyblocks",
+		usage = "/pp howmanyblocks <image name> <height>",
+		desc = "Show how many blocks needed for this image to be generated.",
+		senderType = PLAYER
+	)
+	public void howManyBlocksCommand(CommandArguments arguments) {
+		final Player player = arguments.getSender();
+
+		if (arguments.isArgumentsEmpty()) {
+			sendMessage(player, "Please provide a image name to undo!");
+			return;
+		}
+
+		final String imageName = arguments.getArgument(0);
+
+		if (!FileUtils.checkIfImageExists(imageName)) {
+			sendMessage(player, "&cNo image found called %s in the images folder.", imageName);
+			return;
+		}
+
+		if (arguments.getArgumentsLength() == 1) {
+			sendMessage(player, "Please provide a height!");
+			return;
+		}
+
+		int height = arguments.getArgumentAsInt(1);
+
+		if (height > player.getWorld().getMaxHeight()) {
+			sendMessage(player, "Specified height (%d) is greater than world's maximum height value, this can cause image can not be rendered at all.", height);
+		}
+
+		try {
+			final File loadedImage = FileUtils.getImageFile(imageName);
+
+			BufferedImage bufferedImage = ImageIO.read(loadedImage);
+			bufferedImage = RGBBlockColor.resize(bufferedImage, (int) (bufferedImage.getWidth() * (((double) height) * 2 / bufferedImage.getHeight())), height * 2);
+
+			final int imageWidth = bufferedImage.getWidth(), imageHeight = bufferedImage.getHeight();
+
+			sendMessage(player, "This image needs %dx%d (%d) blocks to be generated.", imageWidth, imageHeight, imageWidth * imageHeight);
+		} catch (Exception exception) {
+			sendMessage(player, "&cSomething went wrong while we were calculating size of the blocks!");
+		}
+	}
+
+	@Command(
 		name = "pp.download",
 		permission = "pp.download",
 		usage = "/pp download <image name> <image URL>",

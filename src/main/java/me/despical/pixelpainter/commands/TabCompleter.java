@@ -65,6 +65,8 @@ public class TabCompleter {
 			return results;
 		}
 
+		if (arg.equalsIgnoreCase("howmanyblocks")) return results;
+
 		if (arg.equalsIgnoreCase("create")) {
 			if (args.length == 2) {
 				return results;

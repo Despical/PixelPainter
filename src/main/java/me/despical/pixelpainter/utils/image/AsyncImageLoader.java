@@ -75,7 +75,7 @@ public class AsyncImageLoader extends Image {
 
 		new BukkitRunnable() {
 			public void run() {
-				final HashMap<String, List<DataHolder>> chunksorter = new HashMap<>();
+				final HashMap<String, List<DataHolder>> chunkSorter = new HashMap<>();
 
 				for (int width = 0; width < (bufferedImage.getWidth()); width += 2) {
 					for (int height = (bufferedImage.getHeight() - 1); height >= 0; height -= 2) {
@@ -97,8 +97,8 @@ public class AsyncImageLoader extends Image {
 						String tempKey = (b.getBlockX() / 16) + "," + (b.getBlockZ() / 16);
 						List<DataHolder> temp;
 
-						if (chunksorter.containsKey(tempKey)) {
-							temp = chunksorter.get(tempKey);
+						if (chunkSorter.containsKey(tempKey)) {
+							temp = chunkSorter.get(tempKey);
 
 							if (temp == null) temp = new ArrayList<>();
 
@@ -108,7 +108,7 @@ public class AsyncImageLoader extends Image {
 							temp.add(new DataHolder(b, materialData));
 						}
 
-						chunksorter.put(tempKey, temp);
+						chunkSorter.put(tempKey, temp);
 					}
 				}
 
@@ -117,7 +117,7 @@ public class AsyncImageLoader extends Image {
 				final int maxDelay = 7;
 				final AtomicHolder blocksUpdated = new AtomicHolder();
 
-				for (Entry<String, List<DataHolder>> ent : chunksorter.entrySet()) {
+				for (Entry<String, List<DataHolder>> ent : chunkSorter.entrySet()) {
 					final List<DataHolder> gg = ent.getValue();
 					timesTicked++;
 
@@ -203,7 +203,7 @@ public class AsyncImageLoader extends Image {
 
 							if (tempDel == 0)
 								sendMessage(" Loading: "
-											+ ((int) (((double) currTick) / chunksorter.size() * 100)) + "%");
+											+ ((int) (((double) currTick) / chunkSorter.size() * 100)) + "%");
 
 							cancel();
 						}
