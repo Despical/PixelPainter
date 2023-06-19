@@ -27,7 +27,7 @@ import java.util.Map.Entry;
 
 import javax.imageio.ImageIO;
 
-import me.despical.commons.compat.VersionResolver;
+import me.despical.commons.ReflectionUtils;
 import me.despical.pixelpainter.Main;
 import me.despical.pixelpainter.utils.data.MaterialData;
 import me.despical.pixelpainter.utils.image.ImageRelativeBlockDirection;
@@ -64,7 +64,7 @@ public class RGBBlockColor {
 	@SuppressWarnings("deprecation")
 	public static void activateBlocks() {
 
-		if (VersionResolver.isCurrentEqualOrHigher(VersionResolver.ServerVersion.v1_14_R1)) {
+		if (ReflectionUtils.supports(14)) {
 			add(102,95,86,105,98,89,104,97,88,104,97,88,"ACACIA_LOG");
 			add(151,89,55,151,89,55,152,90,56,151,89,55,"ACACIA_LOG",true,ImageRelativeBlockDirection.TOP);
 			add(169,91,51,169,91,51,169,91,51,167,90,51,"ACACIA_PLANKS");
@@ -963,7 +963,7 @@ public class RGBBlockColor {
 			new RGBBlockValue(new Color(210, 177, 125), new Color(210, 144, 102), new Color(210, 177, 125),
 					new Color(205, 173, 122), "HUGE_MUSHROOM_2");
 
-			boolean isAbove112 = VersionResolver.isCurrentEqualOrHigher(VersionResolver.ServerVersion.v1_12_R1);
+			boolean isAbove112 = ReflectionUtils.supports(12);
 
 			if (!isAbove112) {
 				new RGBBlockValue(new Color(137, 101, 77), new Color(137, 108, 84), new Color(139, 103, 79),
@@ -1489,7 +1489,7 @@ class RGBBlockValue extends RGBValue {
 		if (Material.matchMaterial(mat) == null)
 			return;
 		byte dyecolor;
-		if (VersionResolver.isCurrentEqualOrHigher(VersionResolver.ServerVersion.v1_10_R1))
+		if (ReflectionUtils.supports(10))
 			dyecolor = (byte) ReflectionUtil.invokeMethod(d, "getWoolData", null);
 		else
 			dyecolor = (byte) ReflectionUtil.invokeMethod(d, "getData", null);
