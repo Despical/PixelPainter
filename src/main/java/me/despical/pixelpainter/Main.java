@@ -19,7 +19,7 @@
 package me.despical.pixelpainter;
 
 import me.despical.commandframework.CommandFramework;
-import me.despical.commons.compat.VersionResolver;
+import me.despical.commons.ReflectionUtils;
 import me.despical.commons.util.UpdateChecker;
 import me.despical.pixelpainter.commands.MainCommands;
 import me.despical.pixelpainter.utils.FileUtils;
@@ -39,7 +39,7 @@ import java.util.List;
  */
 public class Main extends JavaPlugin {
 
-	public static boolean isAbove113 = VersionResolver.isCurrentEqualOrHigher(VersionResolver.ServerVersion.v1_13_R1);
+	public static boolean isAbove113 = ReflectionUtils.supports(13);
 	public Material[] supportedMaterials;
 
 	private CommandFramework commandFramework;
@@ -56,7 +56,7 @@ public class Main extends JavaPlugin {
 		loadSupportedMaterials();
 		checkForUpdates();
 
-		log("Initialization finished. If you'd like to donate: https://buymeacoffee.com/despical");
+		getLogger().info("Initialization finished. Join our Discord server: https://discord.gg/rVkaGmyszE");
 	}
 
 	private void loadSupportedMaterials() {
@@ -97,7 +97,7 @@ public class Main extends JavaPlugin {
 		UpdateChecker.init(this, 104770).requestUpdateCheck().whenComplete((result, exception) -> {
 			if (result.requiresUpdate()) {
 				log("An update is released, update plugin to " + result.getNewestVersion() + " (current: " + getDescription().getVersion() + ")");
-				log("New version: https://www.spigotmc.org/resources/pixel-painter-1-8-1-19-4.104770/");
+				log("New version: https://spigotmc.org/resources/104770");
 			}
 		});
 	}
