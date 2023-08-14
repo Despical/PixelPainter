@@ -56,7 +56,7 @@ public class Main extends JavaPlugin {
 		loadSupportedMaterials();
 		checkForUpdates();
 
-		getLogger().info("Initialization finished. Join our Discord server: https://discord.gg/rVkaGmyszE");
+		getLogger().info("Initialization finished. Consider donating: https://buymeacoffee.com/despical");
 	}
 
 	private void loadSupportedMaterials() {
