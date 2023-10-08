@@ -20,6 +20,8 @@ package me.despical.pixelpainter.commands;
 
 import me.despical.commandframework.Command;
 import me.despical.commandframework.CommandArguments;
+import me.despical.commandframework.Completer;
+import me.despical.commons.miscellaneous.MiscUtils;
 import me.despical.commons.util.Strings;
 import me.despical.pixelpainter.utils.data.AtomicHolder;
 import me.despical.pixelpainter.utils.image.AsyncImageLoader;
@@ -27,8 +29,15 @@ import me.despical.pixelpainter.utils.Direction;
 import me.despical.pixelpainter.utils.FileUtils;
 import me.despical.pixelpainter.utils.RGBBlockColor;
 import me.despical.pixelpainter.utils.undo.UndoUtils;
+import net.md_5.bungee.api.ChatColor;
+import net.md_5.bungee.api.chat.ClickEvent;
+import net.md_5.bungee.api.chat.ComponentBuilder;
+import net.md_5.bungee.api.chat.HoverEvent;
+import net.md_5.bungee.api.chat.TextComponent;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.util.StringUtil;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -36,8 +45,8 @@ import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static me.despical.commandframework.Command.SenderType.PLAYER;
 
@@ -307,18 +316,49 @@ public class MainCommands implements CommandImpl {
 	@Command(
 		name = "pp.help",
 		permission = "pp.help",
-		usage = "/pp help",
-		desc = "Get list of commands and their descriptions."
+		usage = "/pp help"
 	)
 	public void helpCommand(CommandArguments arguments) {
-		arguments.sendMessage(bold + "*** Pixel Painter Commands ***");
+		arguments.sendMessage("");
+		MiscUtils.sendCenteredMessage(arguments.getSender(), bold + "*** Pixel Painter Commands ***");
 		arguments.sendMessage("");
 
-		List<Command> commands = plugin.getCommandFramework().getCommands();
+		final List<Command> commands = plugin.getCommandFramework().getCommands();
 		commands.removeIf(cmd -> cmd.desc().isEmpty());
 
-		for (Command command : commands) {
-			arguments.sendMessage(Strings.format("&7" + command.usage() + " &f&l- &f" + command.desc()));
+		final CommandSender sender = arguments.getSender();
+		final boolean isPlayer = arguments.isSenderPlayer();
+
+		for (final Command command : commands.stream().sorted(Collections.reverseOrder(Comparator.comparingInt(cmd -> cmd.usage().length()))).collect(Collectors.toList())) {
+			final String usage = command.usage(), desc = command.desc();
+
+			if (isPlayer) {
+				((Player) sender).spigot().sendMessage(new ComponentBuilder()
+					.color(ChatColor.DARK_GRAY)
+					.append(" • ")
+					.color(ChatColor.GRAY)
+					.append(usage)
+					.event(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, usage))
+					.event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, TextComponent.fromLegacyText(desc)))
+					.create());
+			} else {
+				sender.sendMessage(Strings.format(" &8• &7" + usage + " &f- " + desc));
+			}
+		}
+
+		if (isPlayer) {
+			final Player player = arguments.getSender();
+
+			player.sendMessage("");
+			player.spigot().sendMessage(new ComponentBuilder("TIP:").color(ChatColor.YELLOW).bold(true)
+				.append(" Try to ", ComponentBuilder.FormatRetention.NONE).color(ChatColor.GRAY)
+				.append("hover").color(ChatColor.WHITE).underlined(true)
+				.event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, TextComponent.fromLegacyText(ChatColor.LIGHT_PURPLE + "Hover on the commands to get info about them.")))
+				.append(" or ", ComponentBuilder.FormatRetention.NONE).color(ChatColor.GRAY)
+				.append("click").color(ChatColor.WHITE).underlined(true)
+				.event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, TextComponent.fromLegacyText(ChatColor.LIGHT_PURPLE + "Click on the commands to insert them in the chat.")))
+				.append(" on the commands!", ComponentBuilder.FormatRetention.NONE).color(ChatColor.GRAY)
+				.create());
 		}
 	}
 
@@ -369,9 +409,56 @@ public class MainCommands implements CommandImpl {
 		new AsyncImageLoader(plugin, name, result, player, player.getLocation().clone(), direction, bufferedImage, enableTrans).loadImage(true);
 	}
 
+	@Completer(
+		name = "pp"
+	)
+	public List<String> onTabComplete(CommandArguments arguments) {
+		final List<String> completions = new ArrayList<>(), commands = plugin.getCommandFramework().getCommands().stream().map(cmd -> cmd.name().replace(arguments.getLabel() + '.', "")).collect(Collectors.toList());
+		final String args[] = arguments.getArguments(), arg = args[0];
+
+		commands.remove("pp");
+
+		if (args.length == 1) {
+			StringUtil.copyPartialMatches(arg, commands, completions);
+		}
+
+		List<String> results = Arrays.stream(FileUtils.IMAGES.listFiles()).filter(File::isFile).map(File::getName).collect(Collectors.toList());
+
+		if (arg.equalsIgnoreCase("delete") || arg.equalsIgnoreCase("specs")) {
+			return results;
+		}
+
+		if (arg.equalsIgnoreCase("howmanyblocks")) return results;
+
+		if (arg.equalsIgnoreCase("create")) {
+			if (args.length == 2) {
+				return results;
+			}
+
+			if (args.length == 3) {
+				return Arrays.stream(Direction.values()).map(Direction::getName).collect(Collectors.toList());
+			}
+
+			if (args.length == 5) {
+				return Arrays.asList("true", "false");
+			}
+
+			return null;
+		}
+
+		if (arg.equalsIgnoreCase("undo")) {
+			List<String> snapshots = new ArrayList<>(UndoUtils.getSnapshots());
+			StringUtil.copyPartialMatches(args[0], snapshots, completions);
+
+			snapshots.sort(null);
+			return snapshots;
+		}
+
+		completions.sort(null);
+		return completions;
+	}
+
 	{
 		register(this);
-
-		new TabCompleter(plugin);
 	}
 }

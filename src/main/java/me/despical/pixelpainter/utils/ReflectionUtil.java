@@ -32,7 +32,6 @@ import java.util.Optional;
  */
 public class ReflectionUtil {
 
-
 	@SuppressWarnings("rawtypes")
 	public static Object invokeMethod(Object handle, String methodName, Class[] parameterClasses, Object... args) {
 		return invokeMethod(handle.getClass(), handle, methodName, parameterClasses, args);

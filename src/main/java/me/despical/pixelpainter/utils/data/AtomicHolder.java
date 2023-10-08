@@ -25,17 +25,8 @@ package me.despical.pixelpainter.utils.data;
  */
 public class AtomicHolder {
 
-	private boolean bool;
 	private String string;
 	private int integer;
-
-	public void setBool(boolean bool) {
-		this.bool = bool;
-	}
-
-	public boolean getBool() {
-		return bool;
-	}
 
 	public void setString(String string) {
 		this.string = string;

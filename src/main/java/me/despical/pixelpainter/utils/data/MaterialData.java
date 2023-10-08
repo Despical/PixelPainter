@@ -21,7 +21,6 @@ package me.despical.pixelpainter.utils.data;
 import me.despical.pixelpainter.utils.RGBBlockColor;
 import me.despical.pixelpainter.utils.image.ImageRelativeBlockDirection;
 import org.bukkit.Material;
-import org.bukkit.block.BlockFace;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
 
@@ -80,10 +79,6 @@ public class MaterialData implements ConfigurationSerializable, Comparable<Mater
 		return direction;
 	}
 
-	public BlockFace getBlockFace() {
-		return direction.convertToBlockFace();
-	}
-
 	public byte getData() {
 		return data;
 	}
@@ -98,7 +93,7 @@ public class MaterialData implements ConfigurationSerializable, Comparable<Mater
 
 	@Override
 	public Map<String, Object> serialize() {
-		Map<String, Object> data = new HashMap<String, Object>();
+		Map<String, Object> data = new HashMap<>();
 		data.put("m", this.getMaterial().toString());
 		data.put("data", this.data + "");
 		return data;
