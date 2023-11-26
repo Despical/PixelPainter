@@ -420,27 +420,32 @@ public class MainCommands implements CommandImpl {
 
 		if (args.length == 1) {
 			StringUtil.copyPartialMatches(arg, commands, completions);
+			return completions;
 		}
 
 		List<String> results = Arrays.stream(FileUtils.IMAGES.listFiles()).filter(File::isFile).map(File::getName).collect(Collectors.toList());
 
 		if (arg.equalsIgnoreCase("delete") || arg.equalsIgnoreCase("specs")) {
-			return results;
+			StringUtil.copyPartialMatches(args[1], results, completions);
+			return completions;
 		}
 
 		if (arg.equalsIgnoreCase("howmanyblocks")) return results;
 
 		if (arg.equalsIgnoreCase("create")) {
 			if (args.length == 2) {
-				return results;
+				StringUtil.copyPartialMatches(args[1], results, completions);
+				return completions;
 			}
 
 			if (args.length == 3) {
-				return Arrays.stream(Direction.values()).map(Direction::getName).collect(Collectors.toList());
+				StringUtil.copyPartialMatches(args[2], Arrays.stream(Direction.values()).map(Direction::getName).collect(Collectors.toList()), completions);
+				return completions;
 			}
 
 			if (args.length == 5) {
-				return Arrays.asList("true", "false");
+				StringUtil.copyPartialMatches(args[4], Arrays.asList("true", "false"), completions);
+				return completions;
 			}
 
 			return null;
@@ -448,13 +453,12 @@ public class MainCommands implements CommandImpl {
 
 		if (arg.equalsIgnoreCase("undo")) {
 			List<String> snapshots = new ArrayList<>(UndoUtils.getSnapshots());
-			StringUtil.copyPartialMatches(args[0], snapshots, completions);
-
 			snapshots.sort(null);
-			return snapshots;
+
+			StringUtil.copyPartialMatches(args[1], snapshots, completions);
+			return completions;
 		}
 
-		completions.sort(null);
 		return completions;
 	}
 
