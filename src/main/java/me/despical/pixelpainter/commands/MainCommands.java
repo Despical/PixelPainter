@@ -413,6 +413,8 @@ public class MainCommands implements CommandImpl {
 		name = "pp"
 	)
 	public List<String> onTabComplete(CommandArguments arguments) {
+		if (!(arguments.hasPermission("pp.admin") || arguments.getSender().isOp())) return null;
+
 		final List<String> completions = new ArrayList<>(), commands = plugin.getCommandFramework().getCommands().stream().map(cmd -> cmd.name().replace(arguments.getLabel() + '.', "")).collect(Collectors.toList());
 		final String args[] = arguments.getArguments(), arg = args[0];
 
