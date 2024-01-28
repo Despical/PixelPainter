@@ -50,7 +50,7 @@ public class Main extends JavaPlugin {
 
 		this.commandFramework = new CommandFramework(this);
 
-		new MainCommands();
+		new MainCommands(this);
 		new Metrics(this, 16044);
 
 		loadSupportedMaterials();
