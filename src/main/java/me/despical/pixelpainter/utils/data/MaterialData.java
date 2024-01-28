@@ -21,18 +21,13 @@ package me.despical.pixelpainter.utils.data;
 import me.despical.pixelpainter.utils.RGBBlockColor;
 import me.despical.pixelpainter.utils.image.ImageRelativeBlockDirection;
 import org.bukkit.Material;
-import org.bukkit.configuration.serialization.ConfigurationSerializable;
-import org.bukkit.configuration.serialization.ConfigurationSerialization;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * @author Despical
  * <p>
  * Created at 4.08.2022
  */
-public class MaterialData implements ConfigurationSerializable, Comparable<MaterialData> {
+public class MaterialData implements Comparable<MaterialData> {
 
 	private Material material;
 	private final byte data;
@@ -40,25 +35,19 @@ public class MaterialData implements ConfigurationSerializable, Comparable<Mater
 	private ImageRelativeBlockDirection direction = null;
 
 	public MaterialData(Material m, byte data, ImageRelativeBlockDirection direction) {
-		ConfigurationSerialization.registerClass(MaterialData.class);
 		this.setMaterial(m);
 		this.data = data;
 		this.direction = direction;
-
 	}
 
-	public MaterialData(Material m, byte data) {
-		this (m, data, null);
+	public MaterialData(Material material, byte data) {
+		this(material, data, null);
 	}
 
-	public MaterialData(Material m) {
-		this (m, ((byte) 0), null);
+	public MaterialData(Material material) {
+		this(material, ((byte) 0), null);
 	}
 
-	public MaterialData(Map<String, Object> data) {
-		this.setMaterial(Material.valueOf((String) data.get("m")));
-		this.data = Byte.parseByte((String) data.get("data"));
-	}
 
 	public static MaterialData getMatDataByTypes(Material mat, byte data) {
 		return getMatDataByTypes(mat, data, null);
@@ -89,14 +78,6 @@ public class MaterialData implements ConfigurationSerializable, Comparable<Mater
 
 	public void setMaterial(Material m) {
 		this.material = m;
-	}
-
-	@Override
-	public Map<String, Object> serialize() {
-		Map<String, Object> data = new HashMap<>();
-		data.put("m", this.getMaterial().toString());
-		data.put("data", this.data + "");
-		return data;
 	}
 
 	@Override

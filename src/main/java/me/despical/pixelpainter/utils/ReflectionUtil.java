@@ -51,9 +51,8 @@ public class ReflectionUtil {
 			return method.invoke(handle, args);
 		} catch (IllegalAccessException | InvocationTargetException e) {
 			e.printStackTrace();
+			return null;
 		}
-
-		return null;
 	}
 
 	public static Optional<Method> getMethod(Class<?> clazz, String name, Class<?>... params) {
@@ -76,29 +75,24 @@ public class ReflectionUtil {
 		try {
 			return (((org.bukkit.block.data.Directional) bs.getBlock().getBlockData()).getFacing() == bf2);
 		} catch (Error | Exception ignored) {
-
+			return false;
 		}
-
-		return false;
 	}
 
 	public static BlockFace getFacing(BlockState bs) {
 		try {
 			return (((org.bukkit.block.data.Directional) bs.getBlock().getBlockData()).getFacing());
 		} catch (Error | Exception ignored) {
-
+			return null;
 		}
-		return null;
 	}
 
 	public static boolean isDirectional(BlockState bs) {
 		try {
 			return (bs.getBlock().getBlockData() instanceof org.bukkit.block.data.Directional);
 		} catch (Error | Exception ignored) {
-
+			return false;
 		}
-
-		return false;
 	}
 
 	public static void setFacing(BlockState bs, BlockFace bf) {
@@ -107,8 +101,6 @@ public class ReflectionUtil {
 			d.setFacing(bf);
 			bs.setBlockData(d);
 			bs.update(true, false);
-		} catch (Error | Exception ignored) {
-
-		}
+		} catch (Error | Exception ignored) {}
 	}
 }

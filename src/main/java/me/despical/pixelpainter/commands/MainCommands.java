@@ -23,6 +23,7 @@ import me.despical.commandframework.CommandArguments;
 import me.despical.commandframework.Completer;
 import me.despical.commons.miscellaneous.MiscUtils;
 import me.despical.commons.util.Strings;
+import me.despical.pixelpainter.Main;
 import me.despical.pixelpainter.utils.data.AtomicHolder;
 import me.despical.pixelpainter.utils.image.AsyncImageLoader;
 import me.despical.pixelpainter.utils.Direction;
@@ -56,6 +57,13 @@ import static me.despical.commandframework.Command.SenderType.PLAYER;
  * Created at 4.08.2022
  */
 public class MainCommands implements CommandImpl {
+
+	private final Main plugin;
+
+	public MainCommands(Main plugin) {
+		this.plugin = plugin;
+		this.plugin.getCommandFramework().registerCommands(this);
+	}
 
 	@Command(
 		name = "pp",
@@ -462,9 +470,5 @@ public class MainCommands implements CommandImpl {
 		}
 
 		return completions;
-	}
-
-	{
-		register(this);
 	}
 }

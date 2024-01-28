@@ -53,10 +53,6 @@ public class UndoUtils {
 		if (snapshot != null) snapshot.undo();
 	}
 
-	public static void remove(String name) {
-		savedSnapshots.remove(name);
-	}
-
 	public static Set<String> getSnapshots() {
 		return savedSnapshots.keySet();
 	}

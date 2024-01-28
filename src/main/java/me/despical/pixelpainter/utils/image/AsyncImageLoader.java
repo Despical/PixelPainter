@@ -93,7 +93,7 @@ public class AsyncImageLoader extends Image {
 							color[i] = new Color(result[y][x].r, result[y][x].g, result[y][x].b, result[y][x].a);
 						}
 
-						MaterialData materialData = RGBBlockColor.getClosestBlockValue(color, (direction == Direction.FLAT_NORTHEAST || direction == Direction.FLAT_NORTHWEST || direction == Direction.FLAT_SOUTHEAST || direction == Direction.FLAT_SOUTHWEST), enableTransparent, plugin.supportedMaterials);
+						MaterialData materialData = RGBBlockColor.getClosestBlockValue(color, (direction == Direction.FLAT_NORTHEAST || direction == Direction.FLAT_NORTHWEST || direction == Direction.FLAT_SOUTHEAST || direction == Direction.FLAT_SOUTHWEST), enableTransparent, plugin.getSupportedMaterials());
 						String tempKey = (b.getBlockX() / 16) + "," + (b.getBlockZ() / 16);
 						List<DataHolder> temp;
 

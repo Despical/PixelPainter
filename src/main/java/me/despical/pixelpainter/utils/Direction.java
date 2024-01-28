@@ -25,8 +25,14 @@ package me.despical.pixelpainter.utils;
  */
 public enum Direction {
 
-	UP_SOUTH("South"), UP_NORTH("North"), UP_EAST("East"), UP_WEST("West"),
-	FLAT_NORTHEAST("FlatNorthEast"), FLAT_SOUTHEAST("FlatSouthEast"), FLAT_NORTHWEST("FlatNorthWest"), FLAT_SOUTHWEST("FlatSouthWest");
+	UP_SOUTH("South"),
+	UP_NORTH("North"),
+	UP_EAST("East"),
+	UP_WEST("West"),
+	FLAT_NORTHEAST("FlatNorthEast"),
+	FLAT_SOUTHEAST("FlatSouthEast"),
+	FLAT_NORTHWEST("FlatNorthWest"),
+	FLAT_SOUTHWEST("FlatSouthWest");
 
 	final String direction;
 

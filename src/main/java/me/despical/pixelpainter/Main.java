@@ -40,9 +40,9 @@ import java.util.List;
 public class Main extends JavaPlugin {
 
 	public static boolean isAbove113 = ReflectionUtils.supports(13);
-	public Material[] supportedMaterials;
 
 	private CommandFramework commandFramework;
+	private Material[] supportedMaterials;
 
 	@Override
 	public void onEnable() {
@@ -108,5 +108,9 @@ public class Main extends JavaPlugin {
 
 	public CommandFramework getCommandFramework() {
 		return commandFramework;
+	}
+
+	public Material[] getSupportedMaterials() {
+		return supportedMaterials;
 	}
 }
