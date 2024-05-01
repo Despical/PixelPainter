@@ -20,8 +20,10 @@ package me.despical.pixelpainter.commands;
 
 import me.despical.commandframework.Command;
 import me.despical.commandframework.CommandArguments;
+import me.despical.commandframework.CommandFramework;
 import me.despical.commandframework.Completer;
 import me.despical.commons.miscellaneous.MiscUtils;
+import me.despical.commons.string.StringMatcher;
 import me.despical.commons.util.Strings;
 import me.despical.pixelpainter.Main;
 import me.despical.pixelpainter.utils.data.AtomicHolder;
@@ -71,8 +73,39 @@ public class MainCommands implements CommandImpl {
 		desc = "Main command of Pixel Painter plugin"
 	)
 	public void ppCommand(CommandArguments arguments) {
-		arguments.sendMessage(bold + "Welcome to Pixel Painter plugin!");
-		arguments.sendMessage("Use /pp help command to list commands.");
+		if (arguments.isArgumentsEmpty()) {
+			arguments.sendMessage("&3This server is running &bPixel Painter v" + plugin.getDescription().getVersion() + " &3by &bDespical&3!");
+
+			if (arguments.hasPermission("pp.help")) {
+				arguments.sendMessage("&3Commands: &b/" + arguments.getLabel() + " help");
+			}
+
+			return;
+		}
+
+		CommandFramework commandFramework = plugin.getCommandFramework();
+		String label = arguments.getLabel(), arg = arguments.getArgument(0);
+		List<String> commands = commandFramework.getCommands().stream().map(cmd -> cmd.name().replace(label + ".", "")).collect(Collectors.toList());
+		List<StringMatcher.Match> matches = StringMatcher.match(arg, commands);
+
+		if (!matches.isEmpty()) {
+			Optional<Command> optionalMatch = commandFramework.getCommands().stream().filter(cmd -> cmd.name().equals(label + "." + matches.get(0).getMatch())).findFirst();
+
+			if (optionalMatch.isPresent()) {
+				String matchedName = getMatchingParts(optionalMatch.get().name(), label + "." + String.join(".", arguments.getArguments()));
+				Optional<Command> matchedCommand = commandFramework.getSubCommands().stream().filter(cmd -> cmd.name().equals(matchedName)).findFirst();
+
+				if (matchedCommand.isPresent()) {
+					arguments.sendMessage("&cCorrect usage: " + matchedCommand.get().usage());
+					return;
+				}
+
+				arguments.sendMessage(prefix + "&cDid you mean &7%command%&c?".replace("%command%", optionalMatch.get().usage()));
+				return;
+			}
+
+			arguments.sendMessage(prefix + "&cDid you mean &7%command%&c?".replace("%command%", label));
+		}
 	}
 
 	@Command(
@@ -84,7 +117,7 @@ public class MainCommands implements CommandImpl {
 	)
 	public void createCommand(CommandArguments arguments) {
 		final Player player = arguments.getSender();
-		final int length = arguments.getArgumentsLength();
+		final int length = arguments.getLength();
 
 		if (length == 0) {
 			sendMessage(player, "Please provide a image file!");
@@ -181,7 +214,7 @@ public class MainCommands implements CommandImpl {
 			return;
 		}
 
-		if (arguments.getArgumentsLength() == 1) {
+		if (arguments.getLength() == 1) {
 			sendMessage(player, "Please provide a height!");
 			return;
 		}
@@ -215,7 +248,7 @@ public class MainCommands implements CommandImpl {
 	)
 	public void downloadImageCommand(CommandArguments arguments) {
 		final Player player = arguments.getSender();
-		final int length = arguments.getArgumentsLength();
+		final int length = arguments.getLength();
 
 		if (length == 0) {
 			sendMessage(player, "Please provide a image name to save the file.");
@@ -470,5 +503,19 @@ public class MainCommands implements CommandImpl {
 		}
 
 		return completions;
+	}
+
+	private String getMatchingParts(String matched, String current) {
+		String[] matchedArray = matched.split("\\."), currentArray = current.split("\\.");
+		int max = Math.min(matchedArray.length, currentArray.length);
+		List<String> matchingParts = new ArrayList<>();
+
+		for (int i = 0; i < max; i++) {
+			if (matchedArray[i].equals(currentArray[i])) {
+				matchingParts.add(matchedArray[i]);
+			}
+		}
+
+		return String.join(".", matchingParts);
 	}
 }
