@@ -50,7 +50,6 @@ public class ReflectionUtil {
 		try {
 			return method.invoke(handle, args);
 		} catch (IllegalAccessException | InvocationTargetException e) {
-			e.printStackTrace();
 			return null;
 		}
 	}
@@ -59,13 +58,11 @@ public class ReflectionUtil {
 		try {
 			return Optional.of(clazz.getMethod(name, params));
 		} catch (NoSuchMethodException e) {
-			e.printStackTrace();
 		}
 
 		try {
 			return Optional.of(clazz.getDeclaredMethod(name, params));
 		} catch (NoSuchMethodException e) {
-			e.printStackTrace();
 		}
 
 		return Optional.empty();
