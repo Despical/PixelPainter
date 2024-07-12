@@ -62,167 +62,196 @@ public class AsyncImageLoader extends Image {
 
 	@SuppressWarnings("deprecation")
 	public void loadImage(boolean allowUndo) {
-		sendMessage("Requested async image loading by " + player);
+		try {
+			sendMessage("Requested async image loading by " + player);
 
-		final Location start = getBlockAt(0, bufferedImage.getWidth(), bufferedImage.getHeight());
-		final Location end = getBlockAt(0, -1, 0).subtract(0, 1, 0);
+			final Location start = getBlockAt(0, bufferedImage.getWidth(), bufferedImage.getHeight());
+			final Location end = getBlockAt(0, -1, 0).subtract(0, 1, 0);
 
-		if (allowUndo) {
-			UndoUtils.addNewSnapshot(name, start, end);
-		}
+			if (allowUndo) {
+				UndoUtils.addNewSnapshot(name, start, end);
+			}
 
-		final int maxHeight = end.getWorld().getMaxHeight();
+			final int maxHeight = end.getWorld().getMaxHeight();
 
-		new BukkitRunnable() {
-			public void run() {
-				final HashMap<String, List<DataHolder>> chunkSorter = new HashMap<>();
+			new BukkitRunnable() {
 
-				for (int width = 0; width < (bufferedImage.getWidth()); width += 2) {
-					for (int height = (bufferedImage.getHeight() - 1); height >= 0; height -= 2) {
-						Location b = getBlockAt(height, width, bufferedImage.getHeight());
+				@Override
+				public void run() {
+					try {
+					final HashMap<String, List<DataHolder>> chunkSorter = new HashMap<>();
 
-						if (b == null || b.getBlockY() > maxHeight) {
-							continue;
+					for (int width = 0; width < (bufferedImage.getWidth()); width += 2) {
+						for (int height = (bufferedImage.getHeight() - 1); height >= 0; height -= 2) {
+							Location b = getBlockAt(height, width, bufferedImage.getHeight());
+
+							if (b == null || b.getBlockY() > maxHeight) {
+								continue;
+							}
+
+							Color[] color = new Color[4];
+
+							for (int i = 0; i < 4; i++) {
+								int y = (height + 1 < result.length) ? height + (i % 2) : height;
+								int x = (width + 1 < result[y].length) ? width + (i % 2) : width;
+								color[i] = new Color(result[y][x].r, result[y][x].g, result[y][x].b, result[y][x].a);
+							}
+
+							MaterialData materialData = RGBBlockColor.getClosestBlockValue(color, (direction == Direction.FLAT_NORTHEAST || direction == Direction.FLAT_NORTHWEST || direction == Direction.FLAT_SOUTHEAST || direction == Direction.FLAT_SOUTHWEST), enableTransparent, plugin.getSupportedMaterials());
+							String tempKey = (b.getBlockX() / 16) + "," + (b.getBlockZ() / 16);
+							List<DataHolder> temp;
+
+							if (chunkSorter.containsKey(tempKey)) {
+								temp = chunkSorter.get(tempKey);
+
+								if (temp == null) temp = new ArrayList<>();
+
+								temp.add(new DataHolder(b, materialData, materialData.hasDirection()));
+							} else {
+								temp = new ArrayList<>();
+								temp.add(new DataHolder(b, materialData));
+							}
+
+							chunkSorter.put(tempKey, temp);
 						}
-
-						Color[] color = new Color[4];
-
-						for (int i = 0; i < 4; i++) {
-							int y = (height + 1 < result.length) ? height + (i % 2) : height;
-							int x = (width + 1 < result[y].length) ? width + (i % 2) : width;
-							color[i] = new Color(result[y][x].r, result[y][x].g, result[y][x].b, result[y][x].a);
-						}
-
-						MaterialData materialData = RGBBlockColor.getClosestBlockValue(color, (direction == Direction.FLAT_NORTHEAST || direction == Direction.FLAT_NORTHWEST || direction == Direction.FLAT_SOUTHEAST || direction == Direction.FLAT_SOUTHWEST), enableTransparent, plugin.getSupportedMaterials());
-						String tempKey = (b.getBlockX() / 16) + "," + (b.getBlockZ() / 16);
-						List<DataHolder> temp;
-
-						if (chunkSorter.containsKey(tempKey)) {
-							temp = chunkSorter.get(tempKey);
-
-							if (temp == null) temp = new ArrayList<>();
-
-							temp.add(new DataHolder(b, materialData, materialData.hasDirection()));
-						} else {
-							temp = new ArrayList<>();
-							temp.add(new DataHolder(b, materialData));
-						}
-
-						chunkSorter.put(tempKey, temp);
 					}
-				}
 
-				int delayLoadingMessage = 0, timesTicked = 0;
+					int delayLoadingMessage = 0, timesTicked = 0;
 
-				final int maxDelay = 7;
-				final AtomicHolder blocksUpdated = new AtomicHolder();
+					final int maxDelay = 7;
+					final AtomicHolder blocksUpdated = new AtomicHolder();
 
-				for (Entry<String, List<DataHolder>> ent : chunkSorter.entrySet()) {
-					final List<DataHolder> gg = ent.getValue();
-					timesTicked++;
+					for (Entry<String, List<DataHolder>> ent : chunkSorter.entrySet()) {
+						final List<DataHolder> gg = ent.getValue();
+						timesTicked++;
 
-					final int tempDel = delayLoadingMessage++;
-					delayLoadingMessage %= maxDelay;
+						final int tempDel = delayLoadingMessage++;
+						delayLoadingMessage %= maxDelay;
 
-					final int currTick = timesTicked;
+						final int currTick = timesTicked;
+
+						new BukkitRunnable() {
+
+							@Override
+							public void run() {
+								try {
+								for (final DataHolder dh : gg) {
+									final BlockState bs = dh.location.getBlock().getState();
+
+									if (dh.materialData.getMaterial().isAir()) continue;
+
+									if (dh.materialData.getMaterial() != Material.AIR) {
+										byte rd = dh.materialData.getData();
+										BlockFace bf = null;
+
+										if (dh.hasFaces()) {
+											bf = getBlockFace(dh, direction);
+											rd = getBlockData(dh, direction);
+										}
+
+										if (dh.materialData.getMaterial() != bs.getType() || (!Main.isAbove113 && ((int) bs.getRawData()) != ((int) rd))) {
+											blocksUpdated.setInteger(blocksUpdated.getInteger() + 1);
+
+											if (Main.isAbove113) {
+												bs.getBlock().setType(dh.materialData.getMaterial());
+												bs.setType(dh.materialData.getMaterial());
+
+												if (bf != null) {
+													ReflectionUtil.setFacing(bs, bf);
+												}
+
+											} else {
+												bs.setType(dh.materialData.getMaterial());
+
+												if (bs.getRawData() != rd) bs.setRawData(rd);
+
+												bs.update(true, false);
+											}
+
+											if (dh.materialData.getMaterial().hasGravity()) {
+												Block below = bs.getBlock().getLocation().subtract(0, 1, 0).getBlock();
+
+												if (below.getType() == Material.AIR)
+													below.setType(Material.BARRIER); // to prevent blocks falling
+											}
+
+											final BlockFace bf2 = bf;
+
+											new BukkitRunnable() {
+
+												@Override
+												public void run() {
+													try {
+														boolean tryBoolean = ReflectionUtil.isFacing(bs, bf2);
+
+														if (bs.getBlock().getType() != dh.materialData.getMaterial() || ((bf2 != null) ? (!tryBoolean) : (!Main.isAbove113 && bs.getBlock().getData() != dh.materialData.getData())) || bs.getBlock().getType() == Material.AIR) {
+															if (bs.getBlock().getType().name().contains("AIR"))
+																return;
+
+//															BlockFace test = null;
+//
+//															if (ReflectionUtil.isDirectional(bs.getBlock().getState())) {
+//																test = ReflectionUtil.getFacing(bs.getBlock().getState());
+//															}
+
+															bs.setType(Material.BARRIER);
+
+//															sendMessage(
+//																"Incorrect value: " + dh.materialData.getMaterial().name() + ":"
+//																	+ ((bf2 != null) ? bf2.name() : dh.materialData.getData())
+//																	+ " is " + bs.getBlock().getType() + ":"
+//																	+ (test != null ? test.name() : bs.getBlock().getData())
+//																	+ " at " + bs.getBlock().getLocation().getBlockX() + ","
+//																	+ bs.getBlock().getLocation().getBlockY() + ","
+//																	+ bs.getBlock().getLocation().getBlockZ());
+														}
+
+														cancel();
+
+													} catch (Throwable e) {
+														e.printStackTrace();
+													}
+												}
+											}.runTaskLater(plugin, 20);
+										}
+									}
+								}
+							} catch (Exception e) {
+								e.printStackTrace();
+							}
+
+								if (tempDel == 0)
+									sendMessage(" Loading: "
+										+ ((int) (((double) currTick) / chunkSorter.size() * 100)) + "%");
+
+								cancel();
+							}
+						}.runTaskLater(plugin, 3L * timesTicked);
+					}
 
 					new BukkitRunnable() {
 
 						@Override
 						public void run() {
-							for (final DataHolder dh : gg) {
-								final BlockState bs = dh.location.getBlock().getState();
-								if (dh.materialData.getMaterial() != Material.AIR) {
+							try {
+								sendMessage("Done! Updated " + blocksUpdated.getInteger() + " blocks!");
 
-									byte rd = dh.materialData.getData();
-									BlockFace bf = null;
-
-									if (dh.hasFaces()) {
-										bf = getBlockFace(dh, direction);
-										rd = getBlockData(dh, direction);
-									}
-
-									if (dh.materialData.getMaterial() != bs.getType() || (!Main.isAbove113 && ((int) bs.getRawData()) != ((int) rd))) {
-										blocksUpdated.setInteger(blocksUpdated.getInteger() + 1);
-										if (Main.isAbove113) {
-											bs.getBlock().setType(dh.materialData.getMaterial());
-											bs.setType(dh.materialData.getMaterial());
-
-											if (bf != null) {
-												ReflectionUtil.setFacing(bs, bf);
-											}
-
-										} else {
-											bs.setType(dh.materialData.getMaterial());
-
-											if (bs.getRawData() != rd) bs.setRawData(rd);
-
-											bs.update(true, false);
-										}
-
-										if (dh.materialData.getMaterial().hasGravity()) {
-											Block below = bs.getBlock().getLocation().subtract(0, 1, 0).getBlock();
-
-											if (below.getType() == Material.AIR)
-												below.setType(Material.BARRIER); // to prevent blocks falling
-										}
-
-										final BlockFace bf2 = bf;
-
-										new BukkitRunnable() {
-
-											@Override
-											public void run() {
-												boolean tryBoolean = ReflectionUtil.isFacing(bs, bf2);
-
-												if (bs.getBlock().getType() != dh.materialData.getMaterial() || ((bf2 != null) ? (!tryBoolean) : (!Main.isAbove113 && bs.getBlock().getData() != dh.materialData.getData())) || bs.getBlock().getType() == Material.AIR) {
-													if (bs.getBlock().getType().name().equals("VOID_AIR")) return;
-
-													BlockFace test = null;
-
-													if (ReflectionUtil.isDirectional(bs.getBlock().getState())) {
-														test = ReflectionUtil.getFacing(bs.getBlock().getState());
-													}
-
-													sendMessage(
-																"Incorrect value: " + dh.materialData.getMaterial().name() + ":"
-																+ ((bf2 != null) ? bf2.name() : dh.materialData.getData())
-																+ " is " + bs.getBlock().getType() + ":"
-																+ (test != null ? test.name() : bs.getBlock().getData())
-																+ " at " + bs.getBlock().getLocation().getBlockX() + ","
-																+ bs.getBlock().getLocation().getBlockY() + ","
-																+ bs.getBlock().getLocation().getBlockZ());
-												}
-
-												cancel();
-											}
-										}.runTaskLater(plugin, 20);
-									}
-								}
+								cancel();
+							} catch (Throwable e) {
+								e.printStackTrace();
 							}
-
-							if (tempDel == 0)
-								sendMessage(" Loading: "
-											+ ((int) (((double) currTick) / chunkSorter.size() * 100)) + "%");
-
-							cancel();
 						}
 					}.runTaskLater(plugin, 3L * timesTicked);
-				}
 
-				new BukkitRunnable() {
-
-					@Override
-					public void run() {
-						sendMessage("Done! Updated " + blocksUpdated.getInteger() + " blocks!");
-
-						cancel();
+					cancel();
+					} catch (Throwable e) {
+						e.printStackTrace();
 					}
-				}.runTaskLater(plugin, 3L * timesTicked);
-
-				cancel();
-			}
-		}.runTaskAsynchronously(plugin);
+				}
+			}.runTaskAsynchronously(plugin);
+		} catch (Throwable e) {
+			e.printStackTrace();
+		}
 	}
 
 	public static BlockFace getBlockFace(DataHolder dataHolder, Direction direction) {

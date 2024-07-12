@@ -19,7 +19,7 @@
 package me.despical.pixelpainter;
 
 import me.despical.commandframework.CommandFramework;
-import me.despical.commons.ReflectionUtils;
+import me.despical.commons.reflection.XReflection;
 import me.despical.commons.util.UpdateChecker;
 import me.despical.pixelpainter.commands.MainCommands;
 import me.despical.pixelpainter.utils.FileUtils;
@@ -39,7 +39,7 @@ import java.util.List;
  */
 public class Main extends JavaPlugin {
 
-	public static boolean isAbove113 = ReflectionUtils.supports(13);
+	public static boolean isAbove113 = XReflection.supports(13);
 
 	private CommandFramework commandFramework;
 	private Material[] supportedMaterials;
@@ -62,7 +62,7 @@ public class Main extends JavaPlugin {
 	private void loadSupportedMaterials() {
 		RGBBlockColor.activateBlocks();
 
-		if (!getConfig().contains("Custom-Materials-Enabled") || !getConfig().contains("Custom-Materials")) {
+		if (!getConfig().isSet("Custom-Materials-Enabled") || !getConfig().isSet("Custom-Materials")) {
 			supportedMaterials = null;
 
 			getConfig().set("Custom-Materials-Enabled", false);

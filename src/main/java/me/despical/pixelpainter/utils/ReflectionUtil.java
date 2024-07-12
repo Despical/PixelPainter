@@ -20,6 +20,8 @@ package me.despical.pixelpainter.utils;
 
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
+import org.bukkit.block.data.BlockData;
+import org.bukkit.block.data.Directional;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -50,6 +52,7 @@ public class ReflectionUtil {
 		try {
 			return method.invoke(handle, args);
 		} catch (IllegalAccessException | InvocationTargetException e) {
+			e.printStackTrace();
 			return null;
 		}
 	}
@@ -57,12 +60,14 @@ public class ReflectionUtil {
 	public static Optional<Method> getMethod(Class<?> clazz, String name, Class<?>... params) {
 		try {
 			return Optional.of(clazz.getMethod(name, params));
-		} catch (NoSuchMethodException e) {
+		} catch (NoSuchMethodException ignored) {
+			ignored.printStackTrace();
 		}
 
 		try {
 			return Optional.of(clazz.getDeclaredMethod(name, params));
-		} catch (NoSuchMethodException e) {
+		} catch (NoSuchMethodException ignored) {
+			ignored.printStackTrace();
 		}
 
 		return Optional.empty();
@@ -70,8 +75,15 @@ public class ReflectionUtil {
 
 	public static boolean isFacing(BlockState bs, BlockFace bf2) {
 		try {
-			return (((org.bukkit.block.data.Directional) bs.getBlock().getBlockData()).getFacing() == bf2);
-		} catch (Error | Exception ignored) {
+			BlockData data = bs.getBlock().getBlockData();
+
+			if (data instanceof Directional) {
+				return ((Directional) data).getFacing() == bf2;
+			}
+
+			return false;
+		} catch (Throwable ignored) {
+			ignored.printStackTrace();
 			return false;
 		}
 	}
@@ -79,7 +91,8 @@ public class ReflectionUtil {
 	public static BlockFace getFacing(BlockState bs) {
 		try {
 			return (((org.bukkit.block.data.Directional) bs.getBlock().getBlockData()).getFacing());
-		} catch (Error | Exception ignored) {
+		} catch (Throwable ignored) {
+			ignored.printStackTrace();
 			return null;
 		}
 	}
@@ -87,7 +100,8 @@ public class ReflectionUtil {
 	public static boolean isDirectional(BlockState bs) {
 		try {
 			return (bs.getBlock().getBlockData() instanceof org.bukkit.block.data.Directional);
-		} catch (Error | Exception ignored) {
+		} catch (Throwable ignored) {
+			ignored.printStackTrace();
 			return false;
 		}
 	}
@@ -98,6 +112,8 @@ public class ReflectionUtil {
 			d.setFacing(bf);
 			bs.setBlockData(d);
 			bs.update(true, false);
-		} catch (Error | Exception ignored) {}
+		} catch (Throwable ignored) {
+			ignored.printStackTrace();
+		}
 	}
 }
