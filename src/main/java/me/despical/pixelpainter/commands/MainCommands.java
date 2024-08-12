@@ -85,11 +85,11 @@ public class MainCommands implements CommandImpl {
 
 		CommandFramework commandFramework = plugin.getCommandFramework();
 		String label = arguments.getLabel(), arg = arguments.getArgument(0);
-		List<String> commands = commandFramework.getCommands().stream().map(cmd -> cmd.name().replace(label + ".", "")).collect(Collectors.toList());
+		List<String> commands = commandFramework.getSubCommands().stream().map(cmd -> cmd.name().replace(label + ".", "")).collect(Collectors.toList());
 		List<StringMatcher.Match> matches = StringMatcher.match(arg, commands);
 
 		if (!matches.isEmpty()) {
-			Optional<Command> optionalMatch = commandFramework.getCommands().stream().filter(cmd -> cmd.name().equals(label + "." + matches.get(0).getMatch())).findFirst();
+			Optional<Command> optionalMatch = commandFramework.getSubCommands().stream().filter(cmd -> cmd.name().equals(label + "." + matches.get(0).getMatch())).findFirst();
 
 			if (optionalMatch.isPresent()) {
 				String matchedName = getMatchingParts(optionalMatch.get().name(), label + "." + String.join(".", arguments.getArguments()));
@@ -361,10 +361,10 @@ public class MainCommands implements CommandImpl {
 	)
 	public void helpCommand(CommandArguments arguments) {
 		arguments.sendMessage("");
-		MiscUtils.sendCenteredMessage(arguments.getSender(), bold + "*** Pixel Painter Commands ***");
+		MiscUtils.sendCenteredMessage(arguments.getSender(), bold + "---- Pixel Painter ----");
 		arguments.sendMessage("");
 
-		final List<Command> commands = plugin.getCommandFramework().getCommands();
+		final List<Command> commands = plugin.getCommandFramework().getSubCommands();
 		commands.removeIf(cmd -> cmd.desc().isEmpty());
 
 		final CommandSender sender = arguments.getSender();
@@ -374,9 +374,7 @@ public class MainCommands implements CommandImpl {
 			final String usage = command.usage(), desc = command.desc();
 
 			if (isPlayer) {
-				((Player) sender).spigot().sendMessage(new ComponentBuilder()
-					.color(ChatColor.DARK_GRAY)
-					.append(" • ")
+				((Player) sender).spigot().sendMessage(new ComponentBuilder(ChatColor.DARK_GRAY + " • ")
 					.color(ChatColor.GRAY)
 					.append(usage)
 					.event(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, usage))
