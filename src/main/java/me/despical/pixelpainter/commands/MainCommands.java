@@ -18,10 +18,10 @@
 
 package me.despical.pixelpainter.commands;
 
-import me.despical.commandframework.Command;
 import me.despical.commandframework.CommandArguments;
 import me.despical.commandframework.CommandFramework;
-import me.despical.commandframework.Completer;
+import me.despical.commandframework.annotations.Command;
+import me.despical.commandframework.annotations.Completer;
 import me.despical.commons.miscellaneous.MiscUtils;
 import me.despical.commons.string.StringMatcher;
 import me.despical.commons.util.Strings;
@@ -50,8 +50,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
 import java.util.stream.Collectors;
-
-import static me.despical.commandframework.Command.SenderType.PLAYER;
 
 /**
  * @author Despical
@@ -113,7 +111,7 @@ public class MainCommands implements CommandImpl {
 		permission = "pp.create",
 		usage = "/pp create <image file> <direction> <height>",
 		desc = "Creates a in-game image from specified image file in the specified direction and height.",
-		senderType = PLAYER
+		senderType = Command.SenderType.PLAYER
 	)
 	public void createCommand(CommandArguments arguments) {
 		final Player player = arguments.getSender();
@@ -170,7 +168,7 @@ public class MainCommands implements CommandImpl {
 		permission = "pp.undo",
 		usage = "/pp undo <loaded image>",
 		desc = "Undo the loaded image.",
-		senderType = PLAYER
+		senderType = Command.SenderType.PLAYER
 	)
 	public void undoImageCommand(CommandArguments arguments) {
 		final Player player = arguments.getSender();
@@ -197,7 +195,7 @@ public class MainCommands implements CommandImpl {
 		permission = "pp.howmanyblocks",
 		usage = "/pp howmanyblocks <image name> <height>",
 		desc = "Show how many blocks needed for this image to be generated.",
-		senderType = PLAYER
+		senderType = Command.SenderType.PLAYER
 	)
 	public void howManyBlocksCommand(CommandArguments arguments) {
 		final Player player = arguments.getSender();
@@ -244,7 +242,7 @@ public class MainCommands implements CommandImpl {
 		permission = "pp.download",
 		usage = "/pp download <image name> <image URL>",
 		desc = "Download image to load.",
-		senderType = PLAYER
+		senderType = Command.SenderType.PLAYER
 	)
 	public void downloadImageCommand(CommandArguments arguments) {
 		final Player player = arguments.getSender();
@@ -311,7 +309,7 @@ public class MainCommands implements CommandImpl {
 		permission = "pp.delete",
 		usage = "/pp delete <image file>",
 		desc = "Delete the specified image file from images directory.",
-		senderType = PLAYER
+		senderType = Command.SenderType.PLAYER
 	)
 	public void deleteImageFileCommand(CommandArguments arguments) {
 		final Player player = arguments.getSender();
@@ -338,7 +336,7 @@ public class MainCommands implements CommandImpl {
 		permission = "pp.list",
 		usage = "/pp list",
 		desc = "Get a list of existing image files in the directory.",
-		senderType = PLAYER
+		senderType = Command.SenderType.PLAYER
 	)
 	public void listFilesCommand(CommandArguments arguments) {
 		final Player player = arguments.getSender();
@@ -406,7 +404,7 @@ public class MainCommands implements CommandImpl {
 		permission = "pp.specs",
 		usage = "/pp specs <image file>",
 		desc = "Get image's width and height values.",
-		senderType = PLAYER
+		senderType = Command.SenderType.PLAYER
 	)
 	public void imageSpecsCommand(CommandArguments arguments) {
 		Player player = arguments.getSender();
