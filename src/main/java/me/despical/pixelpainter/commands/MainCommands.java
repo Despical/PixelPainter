@@ -67,8 +67,8 @@ public class MainCommands implements CommandImpl {
 
 	@Command(
 		name = "pp",
-		usage = "/wm help",
-		desc = "Main command of Pixel Painter plugin"
+		usage = "/pp",
+		desc = "Main command of the plugin."
 	)
 	public void ppCommand(CommandArguments arguments) {
 		if (arguments.isArgumentsEmpty()) {
@@ -156,7 +156,7 @@ public class MainCommands implements CommandImpl {
 		final boolean enableTrans = length > 3 && Boolean.parseBoolean(arguments.getArgument(3));
 		final File loadedImage = FileUtils.getImageFile(imageName);
 
-		try  {
+		try {
 			createImage(player, ImageIO.read(loadedImage), direction, height, enableTrans, loadedImage.getName());
 		} catch (Exception exception) {
 			sendMessage(player, "&cSomething gone wrong while reading the image file! Please check console logs for details.");
@@ -328,7 +328,7 @@ public class MainCommands implements CommandImpl {
 
 		final File file = FileUtils.getImageFile(fileName);
 		sendMessage(player, file.delete() ? "The image file called %s is successfully deleted." :
-											"&cSomething gone wrong while deleting the image file!", fileName);
+			"&cSomething gone wrong while deleting the image file!", fileName);
 	}
 
 	@Command(
@@ -349,37 +349,38 @@ public class MainCommands implements CommandImpl {
 		}
 
 		sendMessage(player, files.isEmpty() ? "The images folder is empty!" :
-											  "Existing image files: &r" + String.join(", ", files));
+			"Existing image files: &r" + String.join(", ", files));
 	}
 
 	@Command(
 		name = "pp.help",
-		permission = "pp.help",
-		usage = "/pp help"
+		usage = "/pp help",
+		desc = "Displays a list of available commands along with their descriptions.",
+		permission = "pp.help"
 	)
 	public void helpCommand(CommandArguments arguments) {
 		arguments.sendMessage("");
-		MiscUtils.sendCenteredMessage(arguments.getSender(), bold + "---- Pixel Painter ----");
+		MiscUtils.sendCenteredMessage(arguments.getSender(), "&3&lPixel Painter");
+		MiscUtils.sendCenteredMessage(arguments.getSender(), "&3[&boptional argument&3] &b- &3<&brequired argument&3>");
 		arguments.sendMessage("");
-
-		final List<Command> commands = plugin.getCommandFramework().getSubCommands();
-		commands.removeIf(cmd -> cmd.desc().isEmpty());
 
 		final CommandSender sender = arguments.getSender();
 		final boolean isPlayer = arguments.isSenderPlayer();
 
-		for (final Command command : commands.stream().sorted(Collections.reverseOrder(Comparator.comparingInt(cmd -> cmd.usage().length()))).collect(Collectors.toList())) {
+		for (final Command command : plugin.getCommandFramework().getAllCommands()) {
 			final String usage = command.usage(), desc = command.desc();
+
+			if (desc.isEmpty()) continue;
 
 			if (isPlayer) {
 				((Player) sender).spigot().sendMessage(new ComponentBuilder(ChatColor.DARK_GRAY + " • ")
-					.color(ChatColor.GRAY)
-					.append(usage)
+					.append(formatCommandUsage("&3" + usage))
+					.color(ChatColor.DARK_AQUA)
 					.event(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, usage))
 					.event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, TextComponent.fromLegacyText(desc)))
 					.create());
 			} else {
-				sender.sendMessage(Strings.format(" &8• &7" + usage + " &f- " + desc));
+				arguments.sendMessage(" &8• &3" + formatCommandUsage("&3" + usage) + " &3- &b" + desc);
 			}
 		}
 
@@ -513,5 +514,21 @@ public class MainCommands implements CommandImpl {
 		}
 
 		return String.join(".", matchingParts);
+	}
+
+	private String formatCommandUsage(String usage) {
+		usage = "&3" + usage;
+
+		final char[] array = usage.toCharArray();
+		final StringBuilder buffer = new StringBuilder(usage);
+
+		for (int i = 0; i < array.length; i++) {
+			if (array[i] == '[' || array[i] == '<') {
+				buffer.insert(i, "&b");
+				return Strings.format(buffer.toString());
+			}
+		}
+
+		return Strings.format(usage);
 	}
 }
