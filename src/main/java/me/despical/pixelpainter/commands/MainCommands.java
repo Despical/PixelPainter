@@ -451,12 +451,10 @@ public class MainCommands implements CommandImpl {
 		name = "pp"
 	)
 	public List<String> onTabComplete(CommandArguments arguments) {
-		if (!(arguments.hasPermission("pp.admin") || arguments.getSender().isOp())) return null;
+		if (!arguments.hasPermission("pp.admin")) return null;
 
-		final List<String> completions = new ArrayList<>(), commands = plugin.getCommandFramework().getCommands().stream().map(cmd -> cmd.name().replace(arguments.getLabel() + '.', "")).collect(Collectors.toList());
+		final List<String> completions = new ArrayList<>(), commands = plugin.getCommandFramework().getSubCommands().stream().map(cmd -> cmd.name().replace(arguments.getLabel() + '.', "")).collect(Collectors.toList());
 		final String args[] = arguments.getArguments(), arg = args[0];
-
-		commands.remove("pp");
 
 		if (args.length == 1) {
 			StringUtil.copyPartialMatches(arg, commands, completions);
@@ -465,12 +463,24 @@ public class MainCommands implements CommandImpl {
 
 		List<String> results = Arrays.stream(FileUtils.IMAGES.listFiles()).filter(File::isFile).map(File::getName).collect(Collectors.toList());
 
-		if (arg.equalsIgnoreCase("delete") || arg.equalsIgnoreCase("specs")) {
-			StringUtil.copyPartialMatches(args[1], results, completions);
-			return completions;
-		}
+		if (args.length == 2) {
+			if (arg.equalsIgnoreCase("delete") || arg.equalsIgnoreCase("specs")) {
+				StringUtil.copyPartialMatches(args[1], results, completions);
+				return completions;
+			}
 
-		if (arg.equalsIgnoreCase("howmanyblocks")) return results;
+			if (arg.equalsIgnoreCase("howmanyblocks")) {
+				return results;
+			}
+
+			if (arg.equalsIgnoreCase("undo")) {
+				List<String> snapshots = new ArrayList<>(UndoUtils.getSnapshots());
+				snapshots.sort(null);
+
+				StringUtil.copyPartialMatches(args[1], snapshots, completions);
+				return completions;
+			}
+		}
 
 		if (arg.equalsIgnoreCase("create")) {
 			if (args.length == 2) {
@@ -487,16 +497,6 @@ public class MainCommands implements CommandImpl {
 				StringUtil.copyPartialMatches(args[4], Arrays.asList("true", "false"), completions);
 				return completions;
 			}
-
-			return null;
-		}
-
-		if (arg.equalsIgnoreCase("undo")) {
-			List<String> snapshots = new ArrayList<>(UndoUtils.getSnapshots());
-			snapshots.sort(null);
-
-			StringUtil.copyPartialMatches(args[1], snapshots, completions);
-			return completions;
 		}
 
 		return completions;
