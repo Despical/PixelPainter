@@ -114,15 +114,15 @@ public class MainCommands implements CommandImpl {
 		senderType = Command.SenderType.PLAYER
 	)
 	public void createCommand(CommandArguments arguments) {
-		final Player player = arguments.getSender();
-		final int length = arguments.getLength();
+		Player player = arguments.getSender();
+		int length = arguments.getLength();
 
 		if (length == 0) {
 			sendMessage(player, "Please provide a image file!");
 			return;
 		}
 
-		final String imageName = arguments.getArgument(0);
+		String imageName = arguments.getArgument(0);
 
 		if (!FileUtils.checkIfImageExists(imageName)) {
 			sendMessage(player, "&cNo image found called %s in the images folder.", imageName);
@@ -134,8 +134,8 @@ public class MainCommands implements CommandImpl {
 			return;
 		}
 
-		final String directionName = arguments.getArgument(1);
-		final Direction direction = Direction.getDirection(directionName);
+		String directionName = arguments.getArgument(1);
+		Direction direction = Direction.getDirection(directionName);
 
 		if (direction == null) {
 			sendMessage(player, "Please provide a valid direction!");
@@ -153,8 +153,8 @@ public class MainCommands implements CommandImpl {
 			sendMessage(player, "Specified height (%d) is greater than world's maximum height value, this can cause image can not be rendered at all.", height);
 		}
 
-		final boolean enableTrans = length > 3 && Boolean.parseBoolean(arguments.getArgument(3));
-		final File loadedImage = FileUtils.getImageFile(imageName);
+		boolean enableTrans = length > 3 && Boolean.parseBoolean(arguments.getArgument(3));
+		File loadedImage = FileUtils.getImageFile(imageName);
 
 		try {
 			createImage(player, ImageIO.read(loadedImage), direction, height, enableTrans, loadedImage.getName());
@@ -171,14 +171,14 @@ public class MainCommands implements CommandImpl {
 		senderType = Command.SenderType.PLAYER
 	)
 	public void undoImageCommand(CommandArguments arguments) {
-		final Player player = arguments.getSender();
+		Player player = arguments.getSender();
 
 		if (arguments.isArgumentsEmpty()) {
 			sendMessage(player, "Please provide a image name to undo!");
 			return;
 		}
 
-		final String imageName = arguments.getArgument(0);
+		String imageName = arguments.getArgument(0);
 
 		if (!UndoUtils.snapshotExists(imageName)) {
 			sendMessage(player, "&cNo loaded image found called %s!", imageName);
@@ -198,14 +198,14 @@ public class MainCommands implements CommandImpl {
 		senderType = Command.SenderType.PLAYER
 	)
 	public void howManyBlocksCommand(CommandArguments arguments) {
-		final Player player = arguments.getSender();
+		Player player = arguments.getSender();
 
 		if (arguments.isArgumentsEmpty()) {
 			sendMessage(player, "Please provide a image name to undo!");
 			return;
 		}
 
-		final String imageName = arguments.getArgument(0);
+		String imageName = arguments.getArgument(0);
 
 		if (!FileUtils.checkIfImageExists(imageName)) {
 			sendMessage(player, "&cNo image found called %s in the images folder.", imageName);
@@ -224,12 +224,12 @@ public class MainCommands implements CommandImpl {
 		}
 
 		try {
-			final File loadedImage = FileUtils.getImageFile(imageName);
+			File loadedImage = FileUtils.getImageFile(imageName);
 
 			BufferedImage bufferedImage = ImageIO.read(loadedImage);
 			bufferedImage = RGBBlockColor.resize(bufferedImage, (int) (bufferedImage.getWidth() * (((double) height) * 2 / bufferedImage.getHeight())), height * 2);
 
-			final int imageWidth = bufferedImage.getWidth(), imageHeight = bufferedImage.getHeight();
+			int imageWidth = bufferedImage.getWidth(), imageHeight = bufferedImage.getHeight();
 
 			sendMessage(player, "This image needs %dx%d (%d) blocks to be generated.", imageWidth, imageHeight, imageWidth * imageHeight);
 		} catch (Exception exception) {
@@ -245,8 +245,8 @@ public class MainCommands implements CommandImpl {
 		senderType = Command.SenderType.PLAYER
 	)
 	public void downloadImageCommand(CommandArguments arguments) {
-		final Player player = arguments.getSender();
-		final int length = arguments.getLength();
+		Player player = arguments.getSender();
+		int length = arguments.getLength();
 
 		if (length == 0) {
 			sendMessage(player, "Please provide a image name to save the file.");
@@ -265,7 +265,7 @@ public class MainCommands implements CommandImpl {
 			return;
 		}
 
-		final String link = arguments.getArgument(1);
+		String link = arguments.getArgument(1);
 
 		if (fileName != null && (!fileName.endsWith("png") || !fileName.endsWith("jpg"))) {
 			fileName += ".jpg";
@@ -312,21 +312,21 @@ public class MainCommands implements CommandImpl {
 		senderType = Command.SenderType.PLAYER
 	)
 	public void deleteImageFileCommand(CommandArguments arguments) {
-		final Player player = arguments.getSender();
+		Player player = arguments.getSender();
 
 		if (arguments.isArgumentsEmpty()) {
 			sendMessage(player, "Please provide a image name to delete!");
 			return;
 		}
 
-		final String fileName = arguments.getArgument(0);
+		String fileName = arguments.getArgument(0);
 
 		if (!FileUtils.checkIfImageExists(fileName)) {
 			sendMessage(player, "&cThere is no image file called %s in the directory!", fileName);
 			return;
 		}
 
-		final File file = FileUtils.getImageFile(fileName);
+		File file = FileUtils.getImageFile(fileName);
 		sendMessage(player, file.delete() ? "The image file called %s is successfully deleted." :
 			"&cSomething gone wrong while deleting the image file!", fileName);
 	}
@@ -339,8 +339,8 @@ public class MainCommands implements CommandImpl {
 		senderType = Command.SenderType.PLAYER
 	)
 	public void listFilesCommand(CommandArguments arguments) {
-		final Player player = arguments.getSender();
-		final List<String> files = new ArrayList<>();
+		Player player = arguments.getSender();
+		List<String> files = new ArrayList<>();
 
 		for (File file : FileUtils.IMAGES.listFiles()) {
 			if (file.isFile()) {
@@ -364,11 +364,11 @@ public class MainCommands implements CommandImpl {
 		MiscUtils.sendCenteredMessage(arguments.getSender(), "&3[&boptional argument&3] &b- &3<&brequired argument&3>");
 		arguments.sendMessage("");
 
-		final CommandSender sender = arguments.getSender();
-		final boolean isPlayer = arguments.isSenderPlayer();
+		CommandSender sender = arguments.getSender();
+		boolean isPlayer = arguments.isSenderPlayer();
 
-		for (final Command command : plugin.getCommandFramework().getAllCommands()) {
-			final String usage = command.usage(), desc = command.desc();
+		for (Command command : plugin.getCommandFramework().getAllCommands()) {
+			String usage = command.usage(), desc = command.desc();
 
 			if (desc.isEmpty()) continue;
 
@@ -385,7 +385,7 @@ public class MainCommands implements CommandImpl {
 		}
 
 		if (isPlayer) {
-			final Player player = arguments.getSender();
+			Player player = arguments.getSender();
 
 			player.sendMessage("");
 			player.spigot().sendMessage(new ComponentBuilder("TIP:").color(ChatColor.YELLOW).bold(true)
@@ -453,8 +453,8 @@ public class MainCommands implements CommandImpl {
 	public List<String> onTabComplete(CommandArguments arguments) {
 		if (!arguments.hasPermission("pp.admin")) return null;
 
-		final List<String> completions = new ArrayList<>(), commands = plugin.getCommandFramework().getSubCommands().stream().map(cmd -> cmd.name().replace(arguments.getLabel() + '.', "")).collect(Collectors.toList());
-		final String args[] = arguments.getArguments(), arg = args[0];
+		List<String> completions = new ArrayList<>(), commands = plugin.getCommandFramework().getSubCommands().stream().map(cmd -> cmd.name().replace(arguments.getLabel() + '.', "")).collect(Collectors.toList());
+		String args[] = arguments.getArguments(), arg = args[0];
 
 		if (args.length == 1) {
 			StringUtil.copyPartialMatches(arg, commands, completions);
@@ -519,8 +519,8 @@ public class MainCommands implements CommandImpl {
 	private String formatCommandUsage(String usage) {
 		usage = "&3" + usage;
 
-		final char[] array = usage.toCharArray();
-		final StringBuilder buffer = new StringBuilder(usage);
+		char[] array = usage.toCharArray();
+		StringBuilder buffer = new StringBuilder(usage);
 
 		for (int i = 0; i < array.length; i++) {
 			if (array[i] == '[' || array[i] == '<') {
