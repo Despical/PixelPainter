@@ -138,7 +138,7 @@ public class AsyncImageLoader extends Image {
 								for (final DataHolder dh : gg) {
 									final BlockState bs = dh.location.getBlock().getState();
 
-									if (dh.materialData.getMaterial().isAir()) continue;
+									if (dh.materialData.getMaterial() == Material.AIR) continue;
 
 									if (dh.materialData.getMaterial() != Material.AIR) {
 										byte rd = dh.materialData.getData();
@@ -171,8 +171,9 @@ public class AsyncImageLoader extends Image {
 											if (dh.materialData.getMaterial().hasGravity()) {
 												Block below = bs.getBlock().getLocation().subtract(0, 1, 0).getBlock();
 
-												if (below.getType() == Material.AIR)
+												if (below.getType() == Material.AIR) {
 													below.setType(Material.BARRIER); // to prevent blocks falling
+												}
 											}
 
 											final BlockFace bf2 = bf;
@@ -208,8 +209,7 @@ public class AsyncImageLoader extends Image {
 
 														cancel();
 
-													} catch (Throwable e) {
-														e.printStackTrace();
+													} catch (Throwable ignored) {
 													}
 												}
 											}.runTaskLater(plugin, 20);

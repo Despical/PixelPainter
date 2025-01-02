@@ -72,10 +72,10 @@ public class MainCommands implements CommandImpl {
 	)
 	public void ppCommand(CommandArguments arguments) {
 		if (arguments.isArgumentsEmpty()) {
-			arguments.sendMessage("&3This server is running &bPixel Painter v" + plugin.getDescription().getVersion() + " &3by &bDespical&3!");
+			arguments.sendMessage("&3This server is running &bPixel Painter v{0} &3by &bDespical&3.", plugin.getDescription().getVersion());
 
 			if (arguments.hasPermission("pp.help")) {
-				arguments.sendMessage("&3Commands: &b/" + arguments.getLabel() + " help");
+				arguments.sendMessage("&3Commands: &b/{0} help", arguments.getLabel());
 			}
 
 			return;

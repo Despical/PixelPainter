@@ -19,7 +19,6 @@
 package me.despical.pixelpainter.commands;
 
 import me.despical.commons.util.Strings;
-import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
 /**
@@ -30,7 +29,6 @@ import org.bukkit.entity.Player;
 public interface CommandImpl {
 
 	String prefix = "&7[&f&lPixel Painter&7] &f";
-	ChatColor bold = ChatColor.BOLD;
 
 	default void sendMessage(Player player, String message) {
 		player.sendMessage(Strings.format(prefix + message));

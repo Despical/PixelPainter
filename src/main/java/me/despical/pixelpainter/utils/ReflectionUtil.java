@@ -52,7 +52,6 @@ public class ReflectionUtil {
 		try {
 			return method.invoke(handle, args);
 		} catch (IllegalAccessException | InvocationTargetException e) {
-			e.printStackTrace();
 			return null;
 		}
 	}
@@ -61,13 +60,11 @@ public class ReflectionUtil {
 		try {
 			return Optional.of(clazz.getMethod(name, params));
 		} catch (NoSuchMethodException ignored) {
-			ignored.printStackTrace();
 		}
 
 		try {
 			return Optional.of(clazz.getDeclaredMethod(name, params));
 		} catch (NoSuchMethodException ignored) {
-			ignored.printStackTrace();
 		}
 
 		return Optional.empty();
@@ -82,8 +79,8 @@ public class ReflectionUtil {
 			}
 
 			return false;
-		} catch (Throwable ignored) {
-			ignored.printStackTrace();
+		} catch (Exception ignored) {
+			System.out.println("sa");
 			return false;
 		}
 	}
@@ -92,7 +89,6 @@ public class ReflectionUtil {
 		try {
 			return (((org.bukkit.block.data.Directional) bs.getBlock().getBlockData()).getFacing());
 		} catch (Throwable ignored) {
-			ignored.printStackTrace();
 			return null;
 		}
 	}
@@ -101,7 +97,6 @@ public class ReflectionUtil {
 		try {
 			return (bs.getBlock().getBlockData() instanceof org.bukkit.block.data.Directional);
 		} catch (Throwable ignored) {
-			ignored.printStackTrace();
 			return false;
 		}
 	}
@@ -113,7 +108,6 @@ public class ReflectionUtil {
 			bs.setBlockData(d);
 			bs.update(true, false);
 		} catch (Throwable ignored) {
-			ignored.printStackTrace();
 		}
 	}
 }

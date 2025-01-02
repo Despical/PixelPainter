@@ -48,7 +48,7 @@ public class Main extends JavaPlugin {
 	public void onEnable() {
 		FileUtils.initializeFiles();
 
-		this.commandFramework = new CommandFramework(this);
+		commandFramework = new CommandFramework(this);
 
 		new MainCommands(this);
 		new Metrics(this, 16044);
@@ -87,7 +87,7 @@ public class Main extends JavaPlugin {
 			for (String material : whitelistedMaterials) {
 				try {
 					supportedMaterials[i++] = Material.matchMaterial(material);
-				} catch (Error | Exception exception) {
+				} catch (Throwable exception) {
 					exception.printStackTrace();
 				}
 			}
@@ -95,11 +95,9 @@ public class Main extends JavaPlugin {
 	}
 
 	private void checkForUpdates() {
-		UpdateChecker.init(this, 104770).requestUpdateCheck().whenComplete((result, exception) -> {
-			if (result.requiresUpdate()) {
-				log("An update is released, update plugin to " + result.getNewestVersion() + " (current: " + getDescription().getVersion() + ")");
-				log("New version: https://spigotmc.org/resources/104770");
-			}
+		UpdateChecker.init(this, 104770).onNewUpdate(result -> {
+			log("An update is released, update plugin to " + result.getNewestVersion() + " (current: " + getDescription().getVersion() + ")");
+			log("New version: https://spigotmc.org/resources/104770");
 		});
 	}
 
