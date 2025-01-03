@@ -67,6 +67,7 @@ public class MainCommands implements CommandImpl {
 
 	@Command(
 		name = "pp",
+		fallbackPrefix = "pixelpainter",
 		usage = "/pp",
 		desc = "Main command of the plugin."
 	)
