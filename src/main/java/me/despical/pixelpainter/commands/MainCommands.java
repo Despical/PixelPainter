@@ -1,21 +1,3 @@
-/*
- * Pixel Painter - Turn your images into blocks.
- * Copyright (C) 2023 Despical
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package me.despical.pixelpainter.commands;
 
 import me.despical.commandframework.CommandArguments;
@@ -23,7 +5,6 @@ import me.despical.commandframework.CommandFramework;
 import me.despical.commandframework.annotations.Command;
 import me.despical.commandframework.annotations.Completer;
 import me.despical.commons.miscellaneous.MiscUtils;
-import me.despical.commons.string.StringMatcher;
 import me.despical.commons.util.Strings;
 import me.despical.pixelpainter.Main;
 import me.despical.pixelpainter.utils.data.AtomicHolder;
@@ -59,10 +40,13 @@ import java.util.stream.Collectors;
 public class MainCommands implements CommandImpl {
 
 	private final Main plugin;
+	private final CommandFramework commandFramework;
 
 	public MainCommands(Main plugin) {
 		this.plugin = plugin;
-		this.plugin.getCommandFramework().registerCommands(this);
+		this.commandFramework = new CommandFramework(plugin);
+
+		commandFramework.registerCommands(this);
 	}
 
 	@Command(
@@ -82,29 +66,7 @@ public class MainCommands implements CommandImpl {
 			return;
 		}
 
-		CommandFramework commandFramework = plugin.getCommandFramework();
-		String label = arguments.getLabel(), arg = arguments.getArgument(0);
-		List<String> commands = commandFramework.getSubCommands().stream().map(cmd -> cmd.name().replace(label + ".", "")).collect(Collectors.toList());
-		List<StringMatcher.Match> matches = StringMatcher.match(arg, commands);
-
-		if (!matches.isEmpty()) {
-			Optional<Command> optionalMatch = commandFramework.getSubCommands().stream().filter(cmd -> cmd.name().equals(label + "." + matches.get(0).getMatch())).findFirst();
-
-			if (optionalMatch.isPresent()) {
-				String matchedName = getMatchingParts(optionalMatch.get().name(), label + "." + String.join(".", arguments.getArguments()));
-				Optional<Command> matchedCommand = commandFramework.getSubCommands().stream().filter(cmd -> cmd.name().equals(matchedName)).findFirst();
-
-				if (matchedCommand.isPresent()) {
-					arguments.sendMessage("&cCorrect usage: " + matchedCommand.get().usage());
-					return;
-				}
-
-				arguments.sendMessage(prefix + "&cDid you mean &7%command%&c?".replace("%command%", optionalMatch.get().usage()));
-				return;
-			}
-
-			arguments.sendMessage(prefix + "&cDid you mean &7%command%&c?".replace("%command%", label));
-		}
+		arguments.sendMessage("&cUnrecognized arguments: /{0} {1}", arguments.getLabel(), arguments.concatArguments());
 	}
 
 	@Command(
@@ -368,7 +330,7 @@ public class MainCommands implements CommandImpl {
 		CommandSender sender = arguments.getSender();
 		boolean isPlayer = arguments.isSenderPlayer();
 
-		for (Command command : plugin.getCommandFramework().getAllCommands()) {
+		for (Command command : commandFramework.getAllCommands()) {
 			String usage = command.usage(), desc = command.desc();
 
 			if (desc.isEmpty()) continue;
@@ -454,7 +416,7 @@ public class MainCommands implements CommandImpl {
 	public List<String> onTabComplete(CommandArguments arguments) {
 		if (!arguments.hasPermission("pp.admin")) return null;
 
-		List<String> completions = new ArrayList<>(), commands = plugin.getCommandFramework().getSubCommands().stream().map(cmd -> cmd.name().replace(arguments.getLabel() + '.', "")).collect(Collectors.toList());
+		List<String> completions = new ArrayList<>(), commands = commandFramework.getSubCommands().stream().map(cmd -> cmd.name().replace(arguments.getLabel() + '.', "")).collect(Collectors.toList());
 		String args[] = arguments.getArguments(), arg = args[0];
 
 		if (args.length == 1) {
@@ -501,20 +463,6 @@ public class MainCommands implements CommandImpl {
 		}
 
 		return completions;
-	}
-
-	private String getMatchingParts(String matched, String current) {
-		String[] matchedArray = matched.split("\\."), currentArray = current.split("\\.");
-		int max = Math.min(matchedArray.length, currentArray.length);
-		List<String> matchingParts = new ArrayList<>();
-
-		for (int i = 0; i < max; i++) {
-			if (matchedArray[i].equals(currentArray[i])) {
-				matchingParts.add(matchedArray[i]);
-			}
-		}
-
-		return String.join(".", matchingParts);
 	}
 
 	private String formatCommandUsage(String usage) {
