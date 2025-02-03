@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>me.despical</groupId>
     <artifactId>pixel-painter</artifactId>
-    <version>1.2.3</version>
+    <version>1.2.4</version>
 
     <name>Pixel Painter</name>
     <inceptionYear>2023</inceptionYear>
@@ -50,7 +50,7 @@
         <dependency>
             <groupId>com.github.Despical</groupId>
             <artifactId>Commons</artifactId>
-            <version>1.8.9</version>
+            <version>1.9.1</version>
         </dependency>
         <dependency>
             <groupId>com.github.Despical</groupId>
