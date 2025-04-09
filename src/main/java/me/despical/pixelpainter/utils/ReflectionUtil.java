@@ -62,7 +62,6 @@ public class ReflectionUtil {
 
 			return false;
 		} catch (Exception ignored) {
-			System.out.println("sa");
 			return false;
 		}
 	}
