@@ -305,7 +305,7 @@ public class MainCommands implements CommandImpl {
 		Player player = arguments.getSender();
 		List<String> files = new ArrayList<>();
 
-		for (File file : FileUtils.IMAGES.listFiles()) {
+		for (File file : FileUtils.IMAGES_FOLDER.listFiles()) {
 			if (file.isFile()) {
 				files.add(file.getName());
 			}
@@ -424,7 +424,7 @@ public class MainCommands implements CommandImpl {
 			return completions;
 		}
 
-		List<String> results = Arrays.stream(FileUtils.IMAGES.listFiles()).filter(File::isFile).map(File::getName).collect(Collectors.toList());
+		List<String> results = Arrays.stream(FileUtils.IMAGES_FOLDER.listFiles()).filter(File::isFile).map(File::getName).collect(Collectors.toList());
 
 		if (args.length == 2) {
 			if (arg.equalsIgnoreCase("delete") || arg.equalsIgnoreCase("specs")) {

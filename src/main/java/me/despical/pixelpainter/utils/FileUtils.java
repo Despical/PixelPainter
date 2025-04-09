@@ -21,7 +21,7 @@ public class FileUtils {
 
 	private static final Main plugin = JavaPlugin.getPlugin(Main.class);
 
-	public static File IMAGES;
+	public static File IMAGES_FOLDER;
 
 	public static void downloadImage(URL url, String fileName, Consumer<Integer> percentage) throws MalformedURLException {
 		BufferedInputStream in = null;
@@ -79,17 +79,17 @@ public class FileUtils {
 	}
 
 	public static File getImageFile(String imageName) {
-		return new File(IMAGES + File.separator + imageName);
+		return new File(IMAGES_FOLDER + File.separator + imageName);
 	}
 
 	public static void initializeFiles() {
 		plugin.saveDefaultConfig();
 
-		IMAGES = new File(plugin.getDataFolder(), "images");
+		IMAGES_FOLDER = new File(plugin.getDataFolder(), "images");
 
-		if (IMAGES.exists()) return;
+		if (IMAGES_FOLDER.exists()) return;
 
-		if (IMAGES.mkdir()) {
+		if (IMAGES_FOLDER.mkdir()) {
 			plugin.log("Created images folder, drop your images to this folder.");
 		}
 	}
