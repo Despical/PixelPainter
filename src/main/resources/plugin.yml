@@ -1,8 +1,10 @@
 name: PixelPainter
 author: Despical
 version: ${project.version}
-api-version: 1.13
+description: ${project.description}
 main: me.despical.pixelpainter.Main
+
+api-version: 1.13
 
 permissions:
   pp.*:
