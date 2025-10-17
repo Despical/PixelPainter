@@ -7,11 +7,11 @@ import me.despical.commandframework.annotations.Completer;
 import me.despical.commons.miscellaneous.MiscUtils;
 import me.despical.commons.util.Strings;
 import me.despical.pixelpainter.Main;
-import me.despical.pixelpainter.utils.data.AtomicHolder;
-import me.despical.pixelpainter.utils.image.AsyncImageLoader;
 import me.despical.pixelpainter.utils.Direction;
 import me.despical.pixelpainter.utils.FileUtils;
 import me.despical.pixelpainter.utils.RGBBlockColor;
+import me.despical.pixelpainter.utils.data.AtomicHolder;
+import me.despical.pixelpainter.utils.image.AsyncImageLoader;
 import me.despical.pixelpainter.utils.undo.UndoUtils;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.ClickEvent;
@@ -28,8 +28,11 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Collectors;
 
 /**
@@ -40,13 +43,10 @@ import java.util.stream.Collectors;
 public class MainCommands implements CommandImpl {
 
 	private final Main plugin;
-	private final CommandFramework commandFramework;
 
 	public MainCommands(Main plugin) {
 		this.plugin = plugin;
-		this.commandFramework = new CommandFramework(plugin);
-
-		commandFramework.registerCommands(this);
+		this.plugin.getCommandFramework().registerCommands(this);
 	}
 
 	@Command(
@@ -245,7 +245,7 @@ public class MainCommands implements CommandImpl {
 					String fileName = holder.getString();
 
 					try {
-						URL url = new URL(link);
+						URL url = URI.create(link).toURL();
 
 						sendMessage(player, "Downloading image (%s) requested by %s...", fileName, player.getName());
 
@@ -330,7 +330,7 @@ public class MainCommands implements CommandImpl {
 		CommandSender sender = arguments.getSender();
 		boolean isPlayer = arguments.isSenderPlayer();
 
-		for (Command command : commandFramework.getAllCommands()) {
+		for (Command command : plugin.getCommandFramework().getAllCommands()) {
 			String usage = command.usage(), desc = command.desc();
 
 			if (desc.isEmpty()) continue;
@@ -416,7 +416,8 @@ public class MainCommands implements CommandImpl {
 	public List<String> onTabComplete(CommandArguments arguments) {
 		if (!arguments.hasPermission("pp.admin")) return null;
 
-		List<String> completions = new ArrayList<>(), commands = commandFramework.getSubCommands().stream().map(cmd -> cmd.name().replace(arguments.getLabel() + '.', "")).collect(Collectors.toList());
+		CommandFramework framework = plugin.getCommandFramework();
+		List<String> completions = new ArrayList<>(), commands = framework.getSubCommands().stream().map(cmd -> cmd.name().replace(arguments.getLabel() + '.', "")).collect(Collectors.toList());
 		String args[] = arguments.getArguments(), arg = args[0];
 
 		if (args.length == 1) {
@@ -446,20 +447,12 @@ public class MainCommands implements CommandImpl {
 		}
 
 		if (arg.equalsIgnoreCase("create")) {
-			if (args.length == 2) {
-				StringUtil.copyPartialMatches(args[1], results, completions);
-				return completions;
-			}
-
-			if (args.length == 3) {
-				StringUtil.copyPartialMatches(args[2], Arrays.stream(Direction.values()).map(Direction::getName).collect(Collectors.toList()), completions);
-				return completions;
-			}
-
-			if (args.length == 5) {
-				StringUtil.copyPartialMatches(args[4], Arrays.asList("true", "false"), completions);
-				return completions;
-			}
+			return switch (args.length) {
+				case 2 -> StringUtil.copyPartialMatches(args[1], results, completions);
+				case 3 -> StringUtil.copyPartialMatches(args[2], Arrays.stream(Direction.values()).map(Direction::getName).toList(), completions);
+				case 5 -> StringUtil.copyPartialMatches(args[4], Arrays.asList("true", "false"), completions);
+				default -> completions;
+			};
 		}
 
 		return completions;

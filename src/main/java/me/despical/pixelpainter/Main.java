@@ -1,5 +1,6 @@
 package me.despical.pixelpainter;
 
+import me.despical.commandframework.CommandFramework;
 import me.despical.commons.reflection.XReflection;
 import me.despical.commons.util.UpdateChecker;
 import me.despical.pixelpainter.commands.MainCommands;
@@ -23,10 +24,13 @@ public class Main extends JavaPlugin {
 	public static boolean isAbove113 = XReflection.supports(13);
 
 	private Material[] supportedMaterials;
+	private CommandFramework commandFramework;
 
 	@Override
 	public void onEnable() {
 		FileUtils.initializeFiles();
+
+		commandFramework = new CommandFramework(this);
 
 		new MainCommands(this);
 		new Metrics(this, 16044);
@@ -74,13 +78,13 @@ public class Main extends JavaPlugin {
 
 	private void checkForUpdates() {
 		UpdateChecker.init(this, 104770).onNewUpdate(result -> {
-			log("An update is released, update plugin to " + result.getNewestVersion() + " (current: " + getDescription().getVersion() + ")");
-			log("New version: https://spigotmc.org/resources/104770");
+			getLogger().info("An update is released, update plugin to " + result.getNewestVersion() + " (current: " + getDescription().getVersion() + ")");
+			getLogger().info("New version: https://spigotmc.org/resources/104770");
 		});
 	}
 
-	public void log(String message) {
-		getLogger().info(message);
+	public CommandFramework getCommandFramework() {
+		return commandFramework;
 	}
 
 	public Material[] getSupportedMaterials() {

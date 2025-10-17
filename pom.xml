@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>me.despical</groupId>
     <artifactId>pixel-painter</artifactId>
-    <version>1.2.7</version>
+    <version>1.2.8</version>
 
     <name>Pixel Painter</name>
     <inceptionYear>2023</inceptionYear>
@@ -48,14 +48,14 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>com.github.Despical</groupId>
-            <artifactId>Commons</artifactId>
-            <version>1.9.8</version>
+            <groupId>com.github.despical</groupId>
+            <artifactId>commons</artifactId>
+            <version>2.0.2</version>
         </dependency>
         <dependency>
-            <groupId>com.github.Despical</groupId>
-            <artifactId>CommandFramework</artifactId>
-            <version>1.5.2</version>
+            <groupId>com.github.despical</groupId>
+            <artifactId>command-framework</artifactId>
+            <version>1.5.3</version>
         </dependency>
         <dependency>
             <groupId>org.bstats</groupId>
@@ -65,12 +65,6 @@
     </dependencies>
 
     <build>
-        <resources>
-            <resource>
-                <directory>src/main/resources</directory>
-                <filtering>true</filtering>
-            </resource>
-        </resources>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -122,5 +116,11 @@
                 </executions>
             </plugin>
         </plugins>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
     </build>
 </project>

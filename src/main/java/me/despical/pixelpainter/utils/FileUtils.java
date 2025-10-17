@@ -90,7 +90,7 @@ public class FileUtils {
 		if (IMAGES_FOLDER.exists()) return;
 
 		if (IMAGES_FOLDER.mkdir()) {
-			plugin.log("Created images folder, drop your images to this folder.");
+			plugin.getLogger().info("Created images folder, drop your images to this folder.");
 		}
 	}
 }
