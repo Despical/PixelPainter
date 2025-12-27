@@ -1,10 +1,9 @@
 name: PixelPainter
 author: Despical
-version: ${project.version}
-description: ${project.description}
-main: me.despical.pixelpainter.Main
-
+version: ${version}
 api-version: 1.13
+description: Turn your images into Minecraft blocks.
+main: dev.despical.pixelpainter.PixelPainterPlugin
 
 permissions:
   pp.*:
