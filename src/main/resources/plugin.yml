@@ -1,9 +1,9 @@
 name: PixelPainter
 author: Despical
-version: ${project.version}
+version: ${version}
 api-version: 1.13
-main: me.despical.pixelpainter.Main
-website: https://www.spigotmc.org/resources/particle-text.110996/
+description: Turn your images into Minecraft blocks.
+main: dev.despical.pixelpainter.PixelPainterPlugin
 
 permissions:
   pp.*:

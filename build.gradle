@@ -1,0 +1,59 @@
+
+plugins {
+    id 'java'
+    id 'com.gradleup.shadow' version '9.3.0'
+}
+
+group = 'dev.despical'
+version = '1.2.9'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+    maven { url = 'https://repo.papermc.io/repository/maven-public' }
+}
+
+dependencies {
+    compileOnly 'com.destroystokyo.paper:paper-api:1.16.5-R0.1-SNAPSHOT'
+
+    implementation 'org.bstats:bstats-bukkit:3.1.0'
+    implementation 'dev.despical:commons:2.0.6'
+    implementation 'dev.despical:command-framework:1.5.6'
+
+    compileOnly 'org.projectlombok:lombok:1.18.30'
+    annotationProcessor 'org.projectlombok:lombok:1.18.30'
+}
+
+
+tasks.processResources {
+    def props = [version: version]
+    inputs.properties props
+
+    filteringCharset = 'UTF-8'
+
+    filesMatching('plugin.yml') {
+        expand props
+    }
+}
+
+tasks.jar {
+    enabled = false
+}
+
+tasks.shadowJar {
+    minimize()
+
+    relocate 'dev.despical.commons', 'dev.despical.particletext.commons'
+    relocate 'dev.despical.commandframework', 'dev.despical.particletext.command'
+    relocate 'org.bstats', 'dev.despical.particletext.util'
+
+    exclude 'META-INF/**'
+
+    archiveFileName = "particle-text-${version}.jar"
+}
