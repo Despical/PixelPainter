@@ -55,5 +55,5 @@ tasks.shadowJar {
 
     exclude 'META-INF/**'
 
-    archiveFileName = "particle-text-${version}.jar"
+    archiveFileName = "pixel-painter-${version}.jar"
 }
