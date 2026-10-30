@@ -326,4 +326,54 @@ public final class PainterCommands extends BaseCommand {
     public void delete(CommandSender sender, String[] args) {
         execute(sender, "delete", args);
     }
+
+    /**
+     * Routes publication of validated configuration resources.
+     *
+     * @param sender command audience
+     * @param args positional arguments after the subcommand
+     */
+    @Subcommand("reload")
+    @CommandCompletion("@none")
+    public void reload(CommandSender sender, String[] args) {
+        execute(sender, "reload", args);
+    }
+
+    /**
+     * Routes paginated, permission-filtered help.
+     *
+     * @param sender command audience
+     * @param args positional arguments after the subcommand
+     */
+    @Subcommand("help")
+    @CommandCompletion("@none")
+    public void help(CommandSender sender, String[] args) {
+        execute(sender, "help", args);
+    }
+
+    private void execute(CommandSender sender, String name, String[] args) {
+        CommandAction action = ACTIONS.stream().filter(a -> a.name().equals(name)).findFirst().orElseThrow();
+
+        if (!sender.hasPermission("pp." + action.permission())) {
+            plugin.messages().send(sender, PaintError.PERMISSION.key());
+
+            return;
+        }
+
+        try {
+            handlers.get(name).run(sender, args);
+        } catch (PaintException exception) {
+            if (exception.error() == PaintError.USAGE) {
+                plugin.messages().send(sender, PaintError.USAGE.key(), "syntax", "/pp " + action.syntax());
+            } else {
+                error(sender, exception);
+            }
+        } catch (Exception exception) {
+            if (name.equals("reload")) {
+                rejectReload(sender, exception);
+            } else {
+                error(sender, exception);
+            }
+        }
+    }
 }
