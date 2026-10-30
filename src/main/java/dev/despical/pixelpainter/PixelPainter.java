@@ -86,4 +86,30 @@ public final class PixelPainter extends JavaPlugin {
             Bukkit.getPluginManager().disablePlugin(this);
         }
     }
+
+    private void initializeConfiguration() throws Exception {
+        configuration = new ConfigurationManager(this);
+        configuration.initialize();
+    }
+
+    private void initializeServices() throws Exception {
+        var folder = getDataFolder().toPath();
+        tasks = new TaskExecutor(this);
+        images = new ImageStore(folder.resolve("images"));
+        imageNames = images.list();
+
+        var undoStore = new UndoStore(folder.resolve("undo"));
+        painter = new PaintService(this, undoStore, undoStore.load());
+    }
+
+    private void registerCommands() {
+        commandManager = new BukkitCommandManager(this);
+        commands = new PainterCommands(this);
+        commands.registerCompletions(commandManager);
+        commandManager.registerCommand(commands);
+    }
+
+    private void registerListeners() {
+        Bukkit.getPluginManager().registerEvents(new PainterListener(this), this);
+    }
 }
