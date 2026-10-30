@@ -252,4 +252,40 @@ public final class PaintService {
             }
         }
     }
+
+    private void tick() {
+        if (active == null || active.waiting) {
+            return;
+        }
+
+        try {
+            active.step();
+        } catch (PaintException exception) {
+            end(exception.error().key());
+        } catch (Exception exception) {
+            plugin.getLogger().log(Level.SEVERE, "Painting stopped; any saved undo journal is retained.", exception);
+            end("commands.operation-failed");
+        }
+    }
+
+    private void end(String key) {
+        Job job = active;
+
+        if (job == null) {
+            return;
+        }
+
+        job.tickets.forEach(chunk -> chunk.removePluginChunkTicket(plugin));
+        Player player = Bukkit.getPlayer(job.owner);
+
+        if (player != null) {
+            player.hideBossBar(job.bar);
+
+            if (key != null) {
+                plugin.messages().send(player, key, "id", job.id, "blocks", job.changed, "conflicts", job.conflicts);
+            }
+        }
+
+        active = null;
+    }
 }
