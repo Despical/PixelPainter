@@ -28,6 +28,7 @@ import dev.despical.pixelpainter.image.BlockPalette;
 import dev.despical.pixelpainter.image.ImageStore;
 import dev.despical.pixelpainter.listener.PainterListener;
 import dev.despical.pixelpainter.service.PaintService;
+import dev.despical.pixelpainter.service.Scheduling;
 import dev.despical.pixelpainter.service.TaskExecutor;
 import dev.despical.pixelpainter.storage.UndoStore;
 
@@ -62,12 +63,13 @@ import java.util.logging.Level;
 public final class PixelPainter extends JavaPlugin {
 
     private ConfigurationManager configuration;
+    private Scheduling scheduling;
     private TaskExecutor tasks;
     private ImageStore images;
     private PaintService painter;
     private PainterCommands commands;
     private BukkitCommandManager commandManager;
-    private List<String> imageNames = List.of();
+    private volatile List<String> imageNames = List.of();
 
     private final WebPImageReaderSpi webpReader = new WebPImageReaderSpi();
 
@@ -94,6 +96,7 @@ public final class PixelPainter extends JavaPlugin {
 
     private void initializeServices() throws Exception {
         var folder = getDataFolder().toPath();
+        scheduling = new Scheduling(this);
         tasks = new TaskExecutor(this);
         images = new ImageStore(folder.resolve("images"));
         imageNames = images.list();
@@ -211,6 +214,15 @@ public final class PixelPainter extends JavaPlugin {
      */
     public PaintService painter() {
         return painter;
+    }
+
+    /**
+     * Returns the facade for Paper and Folia region-aware scheduling.
+     *
+     * @return scheduler facade after successful initialization
+     */
+    public Scheduling scheduling() {
+        return scheduling;
     }
 
     /**

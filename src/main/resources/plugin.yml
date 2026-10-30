@@ -2,6 +2,7 @@ name: PixelPainter
 version: ${version}
 main: dev.despical.pixelpainter.PixelPainter
 api-version: 1.21.11
+folia-supported: true
 author: Despical
 description: Turn images into block art with perceptual color matching and persistent undo.
 website: https://docs.despical.dev/pixel-painter

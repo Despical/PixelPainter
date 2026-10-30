@@ -44,9 +44,9 @@ public final class ConfigurationManager {
 
     private final JavaPlugin plugin;
 
-    private Settings settings;
-    private Messages messages;
-    private BlockPalette palette;
+    private volatile Settings settings;
+    private volatile Messages messages;
+    private volatile BlockPalette palette;
 
     /**
      * Creates a manager without writing files or loading configuration.
