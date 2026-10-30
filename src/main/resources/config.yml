@@ -9,7 +9,7 @@
 
 # Reload these settings with /pp reload. A failed reload keeps the last valid settings.
 # Painting jobs and image requests retain the limits and palette captured when they start.
-# Requires Paper 1.21.11 or newer and Java 25.
+# Runs on Paper, Paper-based forks and Folia, Minecraft 1.21.11 through 26.3, with Java 25.
 
 limits:
   # Maximum requested output height, in block rows. Range: 1..2048.

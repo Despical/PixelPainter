@@ -9,7 +9,8 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Java-25-007396.svg" alt="Java 25">
   <img src="https://img.shields.io/badge/Gradle-9.8.2-079ec0?logo=gradle&amp;logoColor=white" alt="Gradle 9.8.2">
-  <img src="https://img.shields.io/badge/Paper-1.21.11%E2%80%9326.3-62b47a" alt="Paper 1.21.11 to 26.3">
+  <img src="https://img.shields.io/badge/Paper_%26_forks-1.21.11%E2%80%9326.3-62b47a" alt="Paper and forks 1.21.11 to 26.3">
+  <img src="https://img.shields.io/badge/Folia-supported-4f8fba" alt="Folia supported">
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-GPLv3-blue.svg" alt="GPLv3 license"></a>
 </p>
 
@@ -22,25 +23,28 @@
 - PNG, JPEG and WebP sources painted as vertical walls or horizontal floor art in eight directions.
 - 305 opaque block materials, Oklab perceptual color matching and optional Floyd-Steinberg dithering.
 - Exact block-height sizing, aspect-ratio preservation and transparent-pixel handling.
-- Tick-limited world edits with private progress, cancellation and bounded image workers.
+- Tick-limited, chunk-batched world edits with private progress, cancellation and bounded image workers.
+- Runs on Paper, Paper-based forks and Folia.
 - Durable undo journals, original block properties and restart/partial-operation recovery.
 - Configurable MiniMessage panels, material filters and trusted HTTPS source downloads.
 
 ## Requirements
 
 - **Java 25 or newer**, including when the server runs Minecraft 1.21.11.
-- **Paper 1.21.11 through 26.3 inclusive.**
+- **Paper or a Paper-based fork, or Folia, versions 1.21.11 through 26.3 inclusive.**
 - Minecraft Java Edition clients that can join the server's protocol version.
 
 ## Compatibility
 
-PixelPainter 2.0 compiles against the Paper 1.21.11 API and declares that minimum `api-version`. It uses current Paper APIs such as Adventure components, the plugin lifecycle and modern block data, so older servers cannot load it.
+PixelPainter 2.0 compiles against the Paper 1.21.11 API and declares that minimum `api-version`. It uses current Paper APIs such as Adventure components, the region schedulers and modern block data, so Spigot and older servers cannot load it.
 
 | Server software and version | Status |
 | --- | --- |
 | Paper 1.21.11 through 26.3 | Supported. Started and smoke-tested on Paper 1.21.11 and 26.3. |
+| Paper-based forks (for example Purpur) | Supported on 1.21.11 through 26.3 while they keep Paper's plugin API. |
+| Folia 1.21.11 through 26.3 | Supported (`folia-supported: true`). Started on Folia 26.3 and exercised in game: painting, cancel and undo. |
 | Paper 1.21.10 and earlier | Not supported. Use PixelPainter 1.x. |
-| Spigot, CraftBukkit and Folia | Not supported. |
+| Spigot and CraftBukkit | Not supported. |
 | Minecraft 1.8 through 1.12 | Not supported; these versions lack the block data the plugin relies on. |
 
 Block materials that do not exist on the running server version are skipped, so the same `palette.yml` works across the supported range.
@@ -125,7 +129,7 @@ Then run `/pp reload`. `palette.include` and `palette.exclude` filter the active
 
 ## Performance and terrain recovery
 
-Image decoding, resizing, color matching, downloads and journal writes run on two background workers with a bounded queue. Every world read and write runs on the server thread. One world job runs at a time, acquires one chunk per tick and processes at most `performance.blocks-per-tick` pixels or blocks per tick. Chunk generation can still take time; prefer already generated regions for large artwork.
+Image decoding, resizing, color matching, downloads and journal writes run on two background workers with a bounded queue. Every world read and write runs on the thread that owns the chunk: the server thread on Paper, the owning region thread on Folia. One world job runs at a time, groups its work by chunk and processes one chunk batch of at most `performance.blocks-per-tick` pixels or blocks per tick. Chunk generation can still take time; prefer already generated regions for large artwork.
 
 Before painting, Pixel Painter validates the world border, build height, chunk budget, history capacity and overlap with existing journals. It captures original block data and saves a durable journal **before** placing blocks. Paintings never overwrite block entities such as chests, signs or spawners. If one is found during scanning, the operation stops before placement. Transparent pixels and blocks already matching the target are not captured. Physics updates are disabled during placement and restoration.
 
