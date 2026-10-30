@@ -254,4 +254,40 @@ public final class PainterCommands extends BaseCommand {
     public void cancel(CommandSender sender, String[] args) {
         execute(sender, "cancel", args);
     }
+
+    /**
+     * Routes asynchronous source-file listings.
+     *
+     * @param sender command audience
+     * @param args positional arguments after the subcommand
+     */
+    @Subcommand("list")
+    @CommandCompletion("@none")
+    public void list(CommandSender sender, String[] args) {
+        execute(sender, "list", args);
+    }
+
+    /**
+     * Routes accessible undo-history listings.
+     *
+     * @param sender command audience
+     * @param args positional arguments after the subcommand
+     */
+    @Subcommand("history")
+    @CommandCompletion("@none")
+    public void history(CommandSender sender, String[] args) {
+        execute(sender, "history", args);
+    }
+
+    /**
+     * Routes palette-family listings.
+     *
+     * @param sender command audience
+     * @param args positional arguments after the subcommand
+     */
+    @Subcommand("materials")
+    @CommandCompletion("@palettes @none")
+    public void materials(CommandSender sender, String[] args) {
+        execute(sender, "materials", args);
+    }
 }
