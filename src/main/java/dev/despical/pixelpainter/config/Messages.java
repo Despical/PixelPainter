@@ -112,4 +112,41 @@ public record Messages(Map<String, String> templates) {
         values.forEach((_, value) -> mini.deserialize(PLACEHOLDER.matcher(value).replaceAll("x")));
         return new Messages(values);
     }
+
+    /**
+     * Renders a template with placeholders.
+     *
+     * @param key message key
+     * @param replacements alternating placeholder names and values; a {@link Component} keeps its
+     *                     interactions, any other value is inserted as literal text
+     * @return rendered Adventure component
+     * @throws IllegalArgumentException if the key is unknown or the pairs are incomplete
+     */
+    public Component get(String key, Object... replacements) {
+        String template = templates.get(key);
+
+        if (template == null) {
+            throw new IllegalArgumentException("Unknown message key: " + key);
+        }
+
+        if (replacements.length % 2 != 0) {
+            throw new IllegalArgumentException("Message replacements need name/value pairs");
+        }
+
+        var tags = TagResolver.builder();
+
+        for (int i = 0; i < replacements.length; i += 2) {
+            String name = replacements[i].toString();
+
+            if (!PLACEHOLDER_NAME.matcher(name).matches()) {
+                throw new IllegalArgumentException("Invalid message placeholder " + name);
+            }
+
+            template = template.replace("{" + name + "}", "<" + name + ">");
+            tags.resolver(replacements[i + 1] instanceof Component component ? Placeholder.component(name, component)
+                : Placeholder.unparsed(name, String.valueOf(replacements[i + 1])));
+        }
+
+        return MiniMessage.miniMessage().deserialize(template, tags.build());
+    }
 }
