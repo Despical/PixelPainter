@@ -51,4 +51,39 @@ import static org.junit.jupiter.api.Assertions.*;
  * Created at 15.10.2026
  */
 class StorageAndConfigurationTest {
+
+    @TempDir
+    Path temporary;
+
+    private Settings settings() throws Exception {
+        Path config = temporary.resolve("config.yml");
+
+        if (!Files.exists(config)) {
+            Files.writeString(config, "{}");
+        }
+
+        return Settings.load(config);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"../secret", "..\\secret", "C:\\secret", "/tmp/test", ".hidden", "a.gif", "a.png.exe", "a/b", "<red>"})
+    void rejectsUnsafeImageNames(String name) {
+        assertThrows(IllegalArgumentException.class, () -> ImageStore.validName(name));
+    }
+
+    @Test
+    void imageResolutionRejectsAmbiguousNamesAndCorruptImages() throws Exception {
+        Path folder = temporary.resolve("images");
+        var store = new ImageStore(folder);
+        var image = new BufferedImage(2, 3, BufferedImage.TYPE_INT_RGB);
+
+        ImageIO.write(image, "png", folder.resolve("art.png").toFile());
+        assertEquals(3, store.read("ART", settings()).getHeight());
+        ImageIO.write(image, "jpeg", folder.resolve("art.jpg").toFile());
+        assertThrows(IllegalArgumentException.class, () -> store.resolve("art"));
+        Files.writeString(folder.resolve("broken.png"), "not an image");
+        assertThrows(IllegalArgumentException.class, () -> store.read("broken.png", settings()));
+        store.delete("art.jpg");
+        assertTrue(Files.exists(folder.resolve("art.png")));
+    }
 }
