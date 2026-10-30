@@ -213,4 +213,43 @@ public final class PaintService {
             throw new PaintException(PaintError.BORDER);
         }
     }
+
+    private void requireIdle() {
+        if (active != null) {
+            throw new PaintException(PaintError.BUSY);
+        }
+    }
+
+    /**
+     * Cancels the caller's active job, or any job for an administrator.
+     *
+     * @param player requesting owner or administrator
+     * @throws PaintException if the player has no cancellable job
+     */
+    public void cancel(Player player) {
+        if (active == null || (!active.owner.equals(player.getUniqueId()) && !player.hasPermission("pp.admin"))) {
+            throw new PaintException(PaintError.NO_JOB);
+        }
+
+        active.cancelled = true;
+
+        if (!active.waiting) {
+            end("commands.cancelled");
+        }
+    }
+
+    /**
+     * Stops a departing owner's job while retaining durable undo data.
+     *
+     * @param owner departing player UUID
+     */
+    public void quit(UUID owner) {
+        if (active != null && active.owner.equals(owner)) {
+            active.cancelled = true;
+
+            if (!active.waiting) {
+                end(null);
+            }
+        }
+    }
 }
