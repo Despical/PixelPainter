@@ -68,7 +68,6 @@ public final class BlockPalette {
      * @param blockData canonical placement data
      * @param rgb packed representative sRGB color
      * @param lab cached Oklab coordinates, treated as read-only
-     * @author Despical
      * <p>
      * Created at 15.10.2026
      */
@@ -146,10 +145,9 @@ public final class BlockPalette {
      */
     public static BlockPalette load(Path file, Set<String> included, Set<String> excluded) throws Exception {
         var yaml = new YamlConfiguration();
-
         yaml.load(file.toFile());
-        var section = yaml.getConfigurationSection("blocks");
 
+        var section = yaml.getConfigurationSection("blocks");
         if (section == null) {
             throw new IllegalArgumentException("palette.yml requires a blocks section.");
         }
@@ -172,7 +170,6 @@ public final class BlockPalette {
             }
 
             BlockData data = Bukkit.createBlockData(material);
-
             if (!supports(material, data) || data.createBlockState() instanceof TileState) {
                 throw new IllegalArgumentException("Unsafe palette block: " + key);
             }
@@ -182,7 +179,6 @@ public final class BlockPalette {
             }
 
             String hex = section.getString(key);
-
             if (hex == null || !hex.matches("#[0-9a-fA-F]{6}")) {
                 throw new IllegalArgumentException("Expected #RRGGBB for " + key);
             }

@@ -82,7 +82,7 @@ public final class Scheduling {
      * @return handle used to cancel the repeating task
      */
     public ScheduledTask timer(Runnable task) {
-        return Bukkit.getGlobalRegionScheduler().runAtFixedRate(plugin, scheduled -> task.run(), 1, 1);
+        return Bukkit.getGlobalRegionScheduler().runAtFixedRate(plugin, _ -> task.run(), 1, 1);
     }
 
     /**
@@ -101,7 +101,7 @@ public final class Scheduling {
      * @param ticks delay in server ticks, at least one
      */
     public void delayed(Runnable task, long ticks) {
-        Bukkit.getGlobalRegionScheduler().runDelayed(plugin, scheduled -> task.run(), Math.max(1, ticks));
+        Bukkit.getGlobalRegionScheduler().runDelayed(plugin, _ -> task.run(), Math.max(1, ticks));
     }
 
     /**
@@ -129,6 +129,6 @@ public final class Scheduling {
             return;
         }
 
-        player.getScheduler().run(plugin, scheduled -> task.run(), null);
+        player.getScheduler().run(plugin, _ -> task.run(), null);
     }
 }

@@ -64,7 +64,6 @@ public final class ImagePlanner {
         }
 
         long width = Math.max(1L, Math.round(sourceWidth * (double) height / sourceHeight));
-
         if (width > Integer.MAX_VALUE || width * height > maxBlocks) {
             throw new PaintException(PaintError.SIZE);
         }

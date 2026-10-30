@@ -20,7 +20,6 @@ package dev.despical.pixelpainter.command;
 
 import dev.despical.pixelpainter.config.Messages;
 import dev.despical.pixelpainter.core.PaintError;
-import dev.despical.pixelpainter.core.PaintException;
 import dev.despical.pixelpainter.image.PaintPlan;
 import dev.despical.pixelpainter.storage.PaintRecord;
 

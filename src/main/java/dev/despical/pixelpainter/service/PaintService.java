@@ -448,7 +448,7 @@ public final class PaintService {
             tickets.add(chunk);
             progress(chunkCursor, area.size());
 
-            world.getChunkAtAsync(chunk.x(), chunk.z()).whenComplete((loaded, throwable) -> {
+            world.getChunkAtAsync(chunk.x(), chunk.z()).whenComplete((_, throwable) -> {
                 synchronized (PaintService.this) {
                     inFlight = false;
 
