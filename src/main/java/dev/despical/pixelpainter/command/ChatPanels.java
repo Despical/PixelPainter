@@ -116,4 +116,35 @@ public final class ChatPanels {
 
         messages.reply(sender, Component.empty());
     }
+
+    /**
+     * Renders source files as creation-command suggestions.
+     *
+     * @param sender command audience
+     * @param names source filenames
+     * @param page one-based page
+     */
+    public void images(CommandSender sender, List<String> names, int page) {
+        Messages messages = this.messages.get();
+
+        paged(sender, "images", "/pp list ", names, page, name -> row(messages.get("commands.images-row", "image", name),
+            ClickEvent.suggestCommand("/pp create " + name + " north 64"), messages.get("commands.images-hover")));
+    }
+
+    /**
+     * Renders previously authorized records with undo-command suggestions.
+     *
+     * @param sender command audience
+     * @param records accessible records supplied by the service
+     * @param page one-based page
+     */
+    public void history(CommandSender sender, List<PaintRecord> records, int page) {
+        Messages messages = this.messages.get();
+
+        paged(sender, "history", "/pp history ", records, page, record -> row(messages.get("commands.history-row",
+                "image", record.image(), "id", record.id(), "blocks", record.changes().size()),
+            ClickEvent.suggestCommand("/pp undo " + record.id()), messages.get("commands.history-hover",
+                "id", record.id(), "world", record.world(), "origin", record.bounds().minX() + ", "
+                    + record.bounds().minY() + ", " + record.bounds().minZ())));
+    }
 }
