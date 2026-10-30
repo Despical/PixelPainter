@@ -53,4 +53,67 @@ import java.util.function.Supplier;
  * Created at 15.10.2026
  */
 public final class ChatPanels {
+
+    private static final int PAGE_SIZE = 8;
+    private static final int HOVER_COLUMNS = 38;
+
+    private final Supplier<Messages> messages;
+    private final String version;
+
+    /**
+     * Creates renderers that read the currently active message set on every call.
+     *
+     * @param messages supplier of the active messages, so reloads apply immediately
+     * @param version plugin version shown in the help subtitle
+     */
+    public ChatPanels(Supplier<Messages> messages, String version) {
+        this.messages = messages;
+        this.version = version;
+    }
+
+    /**
+     * Renders permission-filtered commands, grouped, with suggestions and hover explanations.
+     *
+     * @param sender command audience
+     * @param actions catalog of available commands
+     */
+    public void help(CommandSender sender, List<CommandAction> actions) {
+        Messages messages = this.messages.get();
+
+        ChatLayout.header(sender, messages, "commands.help-title");
+        ChatLayout.centered(sender, messages, messages.get("commands.help-subtitle", "version", version), false);
+        messages.reply(sender, Component.empty());
+
+        boolean first = true;
+
+        for (CommandAction.Group group : CommandAction.Group.values()) {
+            List<CommandAction> visible = actions.stream().filter(a -> a.group() == group)
+                .filter(a -> sender.hasPermission("pp." + a.permission())).toList();
+
+            if (visible.isEmpty()) {
+                continue;
+            }
+
+            if (!first) {
+                messages.reply(sender, Component.empty());
+            }
+
+            first = false;
+            messages.reply(sender, messages.get("commands.help-section", "section",
+                messages.text("commands.help-group-" + group.key())));
+
+            for (CommandAction action : visible) {
+                String syntax = "/pp " + action.syntax();
+                Component command = messages.get("commands.help-command", "command", syntax);
+
+                messages.reply(sender, messages.get("commands.help-row", "command", command,
+                        "description", messages.text("commands.help-desc-" + action.name()))
+                    .clickEvent(ClickEvent.suggestCommand("/pp " + action.suggestion()))
+                    .hoverEvent(HoverEvent.showText(messages.get("commands.help-hover", "command", syntax,
+                        "description", ChatLayout.wrap(messages.text("commands.help-detail-" + action.name()), HOVER_COLUMNS)))));
+            }
+        }
+
+        messages.reply(sender, Component.empty());
+    }
 }
