@@ -71,4 +71,32 @@ public final class ConfigurationManager {
 
         reload();
     }
+
+    /**
+     * Loads all candidates before replacing the active configuration references.
+     *
+     * @throws Exception if any resource cannot be read or validated
+     */
+    public void reload() throws Exception {
+        var folder = plugin.getDataFolder().toPath();
+
+        Settings loadedSettings = Settings.load(folder.resolve("config.yml"));
+        Messages loadedMessages = Messages.load(folder.resolve("messages.yml"));
+        BlockPalette loadedPalette = BlockPalette.load(folder.resolve("palette.yml"),
+            loadedSettings.included(), loadedSettings.excluded()
+        );
+
+        settings = loadedSettings;
+        messages = loadedMessages;
+        palette = loadedPalette;
+    }
+
+    /**
+     * Returns the current operational limits and presentation settings.
+     *
+     * @return validated settings after initialization
+     */
+    public Settings settings() {
+        return settings;
+    }
 }
