@@ -115,4 +115,41 @@ public final class ChatLayout {
             "page", page, "pages", pages), false);
         messages.reply(sender, Component.empty());
     }
+
+    private static Component button(Messages messages, String direction, String command) {
+        return messages.get("chat.button-" + direction).color(ENABLED)
+            .clickEvent(ClickEvent.runCommand(command))
+            .hoverEvent(HoverEvent.showText(messages.get("chat.hover-" + direction)));
+    }
+
+    /**
+     * Measures a component in bitmap-font pixels.
+     *
+     * @param component content to measure
+     * @param bold whether bold glyph widening applies
+     * @return width in font pixels
+     */
+    public static int pixelWidth(Component component, boolean bold) {
+        int width = 0;
+
+        for (char character : PlainTextComponentSerializer.plainText().serialize(component).toCharArray()) {
+            int advance;
+
+            if (character >= 32 && character <= 126) {
+                advance = ASCII_ADVANCES.charAt(character - 32) - '0';
+            } else if (character == '•') {
+                advance = 3;
+            } else if (character == '·') {
+                advance = 2;
+            } else {
+                var glyph = MinecraftFont.Font.getChar(character);
+
+                advance = (glyph == null ? 5 : glyph.getWidth()) + 1;
+            }
+
+            width += advance + (bold && character != ' ' ? 1 : 0);
+        }
+
+        return width;
+    }
 }
