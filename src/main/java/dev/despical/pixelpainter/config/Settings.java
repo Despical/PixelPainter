@@ -58,4 +58,47 @@ import java.util.Set;
 public record Settings(int maxHeight, int maxBlocks, int maxSourcePixels, int maxFileBytes, int blocksPerTick,
     int maxChunks, int maxHistory, int maxStoredBlocks, int alphaThreshold, int background,
     boolean progress, Set<String> included, Set<String> excluded, Set<String> downloadHosts) {
+
+    /**
+     * Loads bounded settings and translates the legacy material allowlist if present.
+     *
+     * @param path configuration file
+     * @return validated settings with copied collections
+     * @throws Exception if YAML, value types, ranges or legacy backup creation fail
+     */
+    public static Settings load(Path path) throws Exception {
+        var yaml = new YamlConfiguration();
+        yaml.load(path.toFile());
+
+        boolean legacy = yaml.contains("Custom-Materials-Enabled");
+        if (legacy && !Files.exists(path.resolveSibling("config-v1.backup.yml"))) {
+            Files.copy(path, path.resolveSibling("config-v1.backup.yml"));
+        }
+
+        Set<String> included = names(yaml, "palette.include", true);
+        if (legacy && yaml.getBoolean("Custom-Materials-Enabled") && included.isEmpty()) {
+            included = names(yaml, "Custom-Materials", true);
+        }
+
+        String hex = yaml.getString("images.background", "#FFFFFF");
+        if (!hex.matches("#[0-9a-fA-F]{6}")) {
+            throw new IllegalArgumentException("images.background must be #RRGGBB.");
+        }
+
+        if (yaml.contains("progress.enabled") && !yaml.isBoolean("progress.enabled")) {
+            throw new IllegalArgumentException("progress.enabled must be true or false.");
+        }
+
+        return new Settings(number(yaml, "limits.max-height", 512, 1, 2048),
+            number(yaml, "limits.max-blocks", 131072, 1, 1048576),
+            number(yaml, "limits.max-source-pixels", 16777216, 1, 67108864),
+            number(yaml, "limits.max-file-mb", 16, 1, 64) * 1024 * 1024,
+            number(yaml, "performance.blocks-per-tick", 500, 1, 5000),
+            number(yaml, "limits.max-chunks", 128, 1, 512),
+            number(yaml, "undo.max-history", 32, 1, 256),
+            number(yaml, "undo.max-stored-blocks", 524288, 1, 4194304),
+            number(yaml, "images.alpha-threshold", 128, 0, 255), Integer.parseInt(hex.substring(1), 16),
+            yaml.getBoolean("progress.enabled", true), Set.copyOf(included), Set.copyOf(names(yaml, "palette.exclude", true)),
+            Set.copyOf(names(yaml, "downloads.allowed-hosts", false)));
+    }
 }
