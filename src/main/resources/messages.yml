@@ -71,3 +71,9 @@ commands.help-desc-reload: 'Reload configuration'
 commands.help-detail-reload: 'Validate and reload config.yml, messages.yml and palette.yml together. Invalid input keeps the previous active settings. Existing jobs retain their limits and colors.'
 commands.help-desc-help: 'View command help'
 commands.help-detail-help: 'Show the commands available to you. /pp opens this page too.'
+
+# Source image browser
+commands.images-title: '<#DCE3EE><bold>Source Images</bold></#DCE3EE>'
+commands.images-description: '<#A8B8C9>Click an image to fill in a create command.</#A8B8C9>'
+commands.images-row: '{image}'
+commands.images-hover: '<#7ABFCC>Click to prepare a create command.<newline>Choose a direction and height before sending.</#7ABFCC>'
