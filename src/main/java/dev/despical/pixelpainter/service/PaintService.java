@@ -169,4 +169,48 @@ public final class PaintService {
         active = new Job(player, world, bounds, settings, id, image, plan, orientation, origin, null);
         plugin.messages().send(player, "commands.queued", "image", image, "id", id);
     }
+
+    /**
+     * Queues restoration of the latest accessible or explicitly requested journal.
+     *
+     * @param player owner or administrator; command layer checks undo permission
+     * @param requested identifier or source name, or null for the latest accessible journal
+     * @throws PaintException if no journal matches or restoration cannot start
+     */
+    public void undo(Player player, String requested) {
+        requireIdle();
+        PaintRecord record = history(player).stream().filter(r -> requested == null || r.id().equalsIgnoreCase(requested)
+            || r.image().equalsIgnoreCase(requested)).findFirst().orElseThrow(() -> new PaintException(PaintError.MISSING_HISTORY));
+        World world = Bukkit.getWorld(record.world());
+
+        if (world == null) {
+            throw new PaintException(PaintError.WORLD);
+        }
+
+        validate(world, record.bounds(), plugin.settings(), true);
+        active = new Job(player, world, record.bounds(), plugin.settings(), record.id(), record.image(),
+            null, null, null, record);
+        plugin.messages().send(player, "commands.undo-started", "id", record.id());
+    }
+
+    private void validate(World world, Bounds bounds, Settings settings, boolean ignoreBorder) {
+        if (bounds.minY() < world.getMinHeight() || bounds.maxY() >= world.getMaxHeight()
+            || Math.abs((long) bounds.minX()) > 29999984 || Math.abs((long) bounds.maxX()) > 29999984
+            || Math.abs((long) bounds.minZ()) > 29999984 || Math.abs((long) bounds.maxZ()) > 29999984) {
+            throw new PaintException(PaintError.BOUNDS);
+        }
+
+        if (bounds.chunks() > settings.maxChunks()) {
+            throw new PaintException(PaintError.CHUNKS);
+        }
+
+        var border = world.getWorldBorder();
+        double half = border.getSize() / 2;
+        var center = border.getCenter();
+
+        if (!ignoreBorder && (bounds.minX() < center.getX() - half || bounds.maxX() + 1 > center.getX() + half
+            || bounds.minZ() < center.getZ() - half || bounds.maxZ() + 1 > center.getZ() + half)) {
+            throw new PaintException(PaintError.BORDER);
+        }
+    }
 }
