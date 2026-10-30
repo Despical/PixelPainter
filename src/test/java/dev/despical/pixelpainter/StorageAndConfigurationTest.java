@@ -86,4 +86,44 @@ class StorageAndConfigurationTest {
         store.delete("art.jpg");
         assertTrue(Files.exists(folder.resolve("art.png")));
     }
+
+    @Test
+    void sourceDimensionsAreBoundedBeforeDecode() throws Exception {
+        Path folder = temporary.resolve("images");
+        var store = new ImageStore(folder);
+
+        ImageIO.write(new BufferedImage(30, 30, BufferedImage.TYPE_INT_RGB), "png", folder.resolve("large.png").toFile());
+        Files.writeString(temporary.resolve("config.yml"), "limits:\n  max-source-pixels: 16\n");
+        assertThrows(IllegalArgumentException.class, () -> store.read("large", settings()));
+    }
+
+    @Test
+    void downloadsRejectUntrustedAndLocalDestinationsWithoutSavingFiles() throws Exception {
+        var store = new ImageStore(temporary.resolve("images"));
+
+        for (String url : List.of("file:///etc/passwd", "http://i.imgur.com/a.png", "https://127.0.0.1/a.png", "https://untrusted.invalid/a.png")) {
+            assertThrows(IllegalArgumentException.class, () -> store.download("test", url, settings()));
+        }
+
+        assertTrue(store.list().isEmpty());
+
+        try (var files = Files.list(temporary.resolve("images"))
+        ) {
+            assertEquals(0, files.count());
+        }
+    }
+
+    @Test
+    void journalSurvivesNewStoreInstanceAndPartialTemporaryFiles() throws Exception {
+        Path folder = temporary.resolve("undo");
+        var store = new UndoStore(folder);
+        var record = new PaintRecord("abcdef123456", UUID.randomUUID(), UUID.randomUUID(), "art.png", 12345,
+            new Bounds(-1, -10, 1, -1, -10, 1), List.of(new PaintRecord.Change(new Position(-1, -10, 1),
+                "minecraft:oak_stairs[facing=west,half=top,shape=straight,waterlogged=false]", "minecraft:white_concrete")));
+        store.save(record);
+        Files.writeString(folder.resolve("interrupted.tmp"), "partial data");
+        assertEquals(List.of(record), new UndoStore(folder).load());
+        store.delete(record.id());
+        assertTrue(store.load().isEmpty());
+    }
 }
