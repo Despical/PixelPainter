@@ -483,4 +483,41 @@ public final class PainterCommands extends BaseCommand {
                 createPainting(player, args[0], plan, orientation, origin, world, settings, false);
             });
     }
+
+    private void createPainting(Player player, String image, PaintPlan plan, Orientation orientation, Position origin,
+        UUID world, Settings settings, boolean ignoreBorder) {
+
+        try {
+            plugin.painter().create(player, image, plan, orientation, origin, world, settings, ignoreBorder);
+        } catch (PaintException exception) {
+            if (exception.error() != PaintError.BORDER) {
+                throw exception;
+            }
+
+            UUID owner = player.getUniqueId();
+            Runnable confirmation = () -> guarded(player, () -> createPainting(player, image, plan, orientation, origin,
+                world, settings, true));
+
+            confirmations.put(owner, confirmation);
+            Bukkit.getScheduler().runTaskLater(plugin, () -> confirmations.remove(owner, confirmation), CONFIRMATION_TICKS);
+
+            var messages = plugin.messages();
+            Component button = messages.get("chat.confirm-button").clickEvent(ClickEvent.runCommand("/pp confirm"))
+                .hoverEvent(HoverEvent.showText(messages.get("chat.confirm-hover")));
+
+            messages.panel(player, exception.error().key(), button);
+        }
+    }
+
+    private void handlePreview(Player player, String[] args) {
+        count(args, 2, 5);
+        int height = height(args[1]);
+        var palette = plugin.palette().subset(args.length > 2 ? args[2] : "all");
+        boolean dither = args.length > 3 && bool(args[3]);
+        boolean transparent = args.length <= 4 || bool(args[4]);
+        var settings = plugin.settings();
+
+        prepare(player, () -> ImagePlanner.plan(plugin.images().read(args[0], settings), height, settings.maxBlocks(),
+            palette, transparent, settings.alphaThreshold(), dither, settings.background()), plan -> panels.plan(player, args[0], plan));
+    }
 }
