@@ -41,4 +41,34 @@ import java.util.List;
  * Created at 15.10.2026
  */
 public final class ConfigurationManager {
+
+    private final JavaPlugin plugin;
+
+    private Settings settings;
+    private Messages messages;
+    private BlockPalette palette;
+
+    /**
+     * Creates a manager without writing files or loading configuration.
+     *
+     * @param plugin owner of the bundled resources and data directory
+     */
+    public ConfigurationManager(JavaPlugin plugin) {
+        this.plugin = plugin;
+    }
+
+    /**
+     * Copies missing bundled resources and loads the first validated snapshot.
+     *
+     * @throws Exception if resource creation or validation fails
+     */
+    public void initialize() throws Exception {
+        for (String resource : List.of("config.yml", "messages.yml", "palette.yml")) {
+            if (!Files.exists(plugin.getDataFolder().toPath().resolve(resource))) {
+                plugin.saveResource(resource, false);
+            }
+        }
+
+        reload();
+    }
 }
