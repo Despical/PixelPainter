@@ -96,4 +96,24 @@ public enum PaintError {
     OVERLAP("overlap"),
     /** The area contains a block entity. */
     BLOCK_ENTITY("block-entity");
+
+    private final String key;
+
+    PaintError(String key) {
+        this.key = "commands." + key;
+    }
+
+    /**
+     * Returns the message key whose {@code -title} companion forms the panel.
+     *
+     * @return full message key
+     */
+    public String key() {
+        return key;
+    }
+
+    @Override
+    public String toString() {
+        return name().toLowerCase(Locale.ROOT);
+    }
 }
