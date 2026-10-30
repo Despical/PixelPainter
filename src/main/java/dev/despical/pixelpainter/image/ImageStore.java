@@ -81,4 +81,34 @@ public final class ImageStore {
 
         return input;
     }
+
+    /**
+     * Lists valid, regular source files without following symbolic links.
+     *
+     * @return source names sorted without regard to case
+     * @throws IOException if directory scanning fails
+     */
+    public List<String> list() throws IOException {
+        try (var paths = Files.list(folder)
+        ) {
+            return paths.filter(p -> Files.isRegularFile(p, LinkOption.NOFOLLOW_LINKS))
+                .map(p -> p.getFileName().toString())
+                .filter(ImageStore::isSourceName)
+                .sorted(String.CASE_INSENSITIVE_ORDER).toList();
+        }
+    }
+
+    private static boolean isSourceName(String name) {
+        if (!name.matches("(?i).+\\.(png|jpg|jpeg|webp)")) {
+            return false;
+        }
+
+        try {
+            validName(name);
+
+            return true;
+        } catch (IllegalArgumentException ignored) {
+            return false;
+        }
+    }
 }
