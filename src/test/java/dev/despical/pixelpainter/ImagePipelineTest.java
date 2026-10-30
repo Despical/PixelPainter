@@ -42,4 +42,40 @@ import static org.junit.jupiter.api.Assertions.*;
  * Created at 15.10.2026
  */
 class ImagePipelineTest {
+
+    private static final BlockPalette PALETTE = new BlockPalette(List.of(
+        new BlockPalette.Entry("BLACK_CONCRETE", "minecraft:black_concrete", 0),
+        new BlockPalette.Entry("WHITE_CONCRETE", "minecraft:white_concrete", 0xffffff)));
+
+    @Test
+    void dimensionsUseActualBlockHeightAndRejectOverflow() {
+        assertEquals(128, ImagePlanner.width(1920, 960, 64, 8192));
+        assertEquals(1, ImagePlanner.width(1, 1000, 8, 8));
+        assertThrows(IllegalArgumentException.class, () -> ImagePlanner.width(1920, 960, 64, 8191));
+        assertThrows(IllegalArgumentException.class, () -> ImagePlanner.width(Integer.MAX_VALUE, 1, 2048, 1048576));
+        assertThrows(IllegalArgumentException.class, () -> ImagePlanner.width(2, 2, 0, 100));
+    }
+
+    @ParameterizedTest
+    @EnumSource(Orientation.class)
+    void geometryUsesEveryPixelExactlyOnceAndContainsAllPositions(Orientation direction) {
+        Position origin = new Position(-18, -32, -18);
+        Bounds bounds = Bounds.of(origin, direction.position(origin, 8, 0, 7));
+        var positions = new HashSet<Position>();
+
+        for (int y = 0; y < 7; y++) {
+            for (int x = 0; x < 9; x++) {
+                Position p = direction.position(origin, x, y, 7);
+
+                assertTrue(positions.add(p));
+                assertTrue(p.x() >= bounds.minX() && p.x() <= bounds.maxX());
+                assertTrue(p.y() >= bounds.minY() && p.y() <= bounds.maxY());
+                assertTrue(p.z() >= bounds.minZ() && p.z() <= bounds.maxZ());
+            }
+        }
+
+        assertEquals(origin, direction.position(origin, 0, 6, 7));
+        assertEquals(direction, Orientation.parse(direction.name().replace("_", "")));
+        assertTrue(bounds.chunks() > 0);
+    }
 }
