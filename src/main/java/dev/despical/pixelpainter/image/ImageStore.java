@@ -148,4 +148,50 @@ public final class ImageStore {
     public BufferedImage read(String name, Settings settings) throws IOException {
         return decode(resolve(name), settings);
     }
+
+    /**
+     * Validates byte size, format and source dimensions before reading pixels.
+     *
+     * @param file existing image file
+     * @param settings source limits
+     * @return decoded first image
+     * @throws IOException if metadata or content cannot be read
+     * @throws IllegalArgumentException if format, bytes or dimensions are unsupported
+     */
+    public static BufferedImage decode(Path file, Settings settings) throws IOException {
+        if (Files.size(file) > settings.maxFileBytes()) {
+            throw new PaintException(PaintError.FILE_SIZE);
+        }
+
+        try (var stream = ImageIO.createImageInputStream(file.toFile())
+        ) {
+            var readers = ImageIO.getImageReaders(stream);
+
+            if (!readers.hasNext()) {
+                throw new PaintException(PaintError.IMAGE_FORMAT);
+            }
+
+            ImageReader reader = readers.next();
+
+            try {
+                String format = reader.getFormatName();
+
+                if (!format.equalsIgnoreCase("png") && !format.equalsIgnoreCase("jpeg")
+                    && !format.equalsIgnoreCase("webp")) {
+                    throw new PaintException(PaintError.IMAGE_FORMAT);
+                }
+
+                reader.setInput(stream, true, true);
+                int width = reader.getWidth(0), height = reader.getHeight(0);
+
+                if (width <= 0 || height <= 0 || (long) width * height > settings.maxSourcePixels()) {
+                    throw new PaintException(PaintError.SOURCE_SIZE);
+                }
+
+                return reader.read(0);
+            } finally {
+                reader.dispose();
+            }
+        }
+    }
 }
