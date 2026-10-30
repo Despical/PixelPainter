@@ -56,4 +56,17 @@ public final class ColorMath {
 
         return value <= 0.04045 ? value / 12.92 : Math.pow((value + 0.055) / 1.055, 2.4);
     }
+
+    /**
+     * Measures squared Euclidean distance between Oklab coordinates.
+     *
+     * @param a first array with at least three elements
+     * @param b second array with at least three elements
+     * @return squared distance; smaller values represent closer colors
+     */
+    public static double distance(double[] a, double[] b) {
+        double l = a[0] - b[0], x = a[1] - b[1], y = a[2] - b[2];
+
+        return l * l + x * x + y * y;
+    }
 }
