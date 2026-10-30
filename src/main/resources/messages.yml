@@ -6,3 +6,14 @@
 #                   https://docs.despical.dev/pixel-painter                   #
 #                                                                             #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+# Chat panels, hover text and progress labels use Adventure MiniMessage.
+# Reload with /pp reload after editing. Invalid YAML, non-text values or malformed
+# MiniMessage tags reject the reload and keep the previous message set active.
+# Missing keys fall back to the bundled defaults, so you may override single keys.
+#
+# Placeholders such as {image}, {id} and {blocks} are inserted as literal text.
+# Rich placeholders such as {command}, {previous} and {next} are supplied by the
+# panel renderer. Keep required placeholders when you edit a message.
+# A key with a "-title" companion is shown to players as a centered panel;
+# the console receives the same text without formatting.
