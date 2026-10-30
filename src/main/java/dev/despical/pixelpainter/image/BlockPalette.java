@@ -60,4 +60,35 @@ import java.util.stream.Collectors;
  * Created at 15.10.2026
  */
 public final class BlockPalette {
+
+    /**
+     * Associates a material and canonical block data with its representative color.
+     *
+     * @param material Bukkit material name
+     * @param blockData canonical placement data
+     * @param rgb packed representative sRGB color
+     * @param lab cached Oklab coordinates, treated as read-only
+     * @author Despical
+     * <p>
+     * Created at 15.10.2026
+     */
+    public record Entry(String material, String blockData, int rgb, double[] lab) {
+
+        /**
+         * Creates an entry and computes its cached perceptual coordinates.
+         *
+         * @param material Bukkit material name
+         * @param blockData canonical placement data
+         * @param rgb representative sRGB color
+         */
+        public Entry(String material, String blockData, int rgb) {
+            this(material, blockData, rgb, ColorMath.lab(rgb));
+        }
+    }
+
+    /**
+     * Maps blocks that change themselves after placement to the blocks they can become.
+     * Undo accepts a decayed block as the painted one; new paintings never use them.
+     */
+    public static final Map<String, Set<String>> DECAYING = decaying();
 }
