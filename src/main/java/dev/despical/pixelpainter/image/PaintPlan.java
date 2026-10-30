@@ -70,4 +70,22 @@ public record PaintPlan(int width, int height, String[] blocks, Map<String, Inte
     public String block(int index) {
         return blocks[index];
     }
+
+    /**
+     * Returns the complete output area, including transparent pixels.
+     *
+     * @return number of pixel slots
+     */
+    public int size() {
+        return blocks.length;
+    }
+
+    /**
+     * Counts pixels that select a palette material.
+     *
+     * @return selected pixels, regardless of existing terrain
+     */
+    public int painted() {
+        return materials.values().stream().mapToInt(Integer::intValue).sum();
+    }
 }
