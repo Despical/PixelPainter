@@ -202,4 +202,40 @@ public final class BlockPalette {
 
         return new BlockPalette(entries);
     }
+
+    private static boolean isGlass(Material material) {
+        String name = material.name();
+
+        return name.equals("GLASS") || name.endsWith("_GLASS");
+    }
+
+    private static boolean supports(Material material, BlockData data) {
+        if (material.isOccluding() || data instanceof Leaves) {
+            return true;
+        }
+
+        return switch (material) {
+            case GLOWSTONE, SEA_LANTERN, BLUE_ICE, PACKED_ICE -> true;
+            default -> false;
+        };
+    }
+
+    /**
+     * Selects a named material family within the configured global filters.
+     *
+     * @param name all, concrete, wool or terracotta, ignoring case
+     * @return this palette for all, or a new family palette
+     * @throws IllegalArgumentException if the family is unknown or empty
+     */
+    public BlockPalette subset(String name) {
+        String suffix = switch (name.toLowerCase(Locale.ROOT)) {
+            case "all" -> "";
+            case "concrete" -> "_CONCRETE";
+            case "wool" -> "_WOOL";
+            case "terracotta" -> "_TERRACOTTA";
+            default -> throw new PaintException(PaintError.PALETTE);
+        };
+
+        return suffix.isEmpty() ? this : new BlockPalette(entries.stream().filter(e -> e.material.endsWith(suffix)).toList());
+    }
 }
