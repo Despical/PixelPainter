@@ -68,4 +68,33 @@ import java.util.logging.Level;
  * Created at 15.10.2026
  */
 public final class PaintService {
+
+    private final PixelPainter plugin;
+    private final UndoStore store;
+    private final Map<String, PaintRecord> history = new LinkedHashMap<>();
+    private final BukkitTask ticker;
+    private Job active;
+
+    /**
+     * Publishes recovered journals and registers the server-thread ticker.
+     *
+     * @param plugin owning enabled plugin
+     * @param store persistent journal storage
+     * @param restored startup recovery records
+     */
+    public PaintService(PixelPainter plugin, UndoStore store, List<PaintRecord> restored) {
+        this.plugin = plugin;
+        this.store = store;
+        restored.forEach(record -> history.put(record.id(), record));
+        ticker = Bukkit.getScheduler().runTaskTimer(plugin, this::tick, 1, 1);
+    }
+
+    /**
+     * Checks whether a world job, including pending journal I/O, occupies the service.
+     *
+     * @return whether a job is active
+     */
+    public boolean busy() {
+        return active != null;
+    }
 }
