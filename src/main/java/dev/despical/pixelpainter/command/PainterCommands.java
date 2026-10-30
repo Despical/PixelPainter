@@ -376,4 +376,38 @@ public final class PainterCommands extends BaseCommand {
             }
         }
     }
+
+    private void handleUndo(CommandSender sender, String[] args) {
+        count(args, 0, 1);
+        plugin.painter().undo(player(sender), args.length == 0 ? null : args[0]);
+    }
+
+    private void handleCancel(CommandSender sender, String[] args) {
+        count(args, 0, 0);
+        Player player = player(sender);
+
+        if (fileOperations.contains(player.getUniqueId())) {
+            throw new PaintException(PaintError.FILE_BUSY);
+        }
+
+        if (pending.remove(player.getUniqueId()) != null) {
+            plugin.messages().send(player, "commands.preparation-cancelled");
+        } else {
+            plugin.painter().cancel(player);
+        }
+    }
+
+    private void handleList(CommandSender sender, String[] args) {
+        int page = page(args);
+
+        plugin.refreshImages(names -> guarded(sender, () -> panels.images(sender, names, page)), exception -> error(sender, exception));
+    }
+
+    private void handleMaterials(CommandSender sender, String[] args) {
+        count(args, 0, 2);
+        String palette = args.length > 0 ? args[0] : "all";
+
+        panels.materials(sender, palette, plugin.palette().subset(palette).entries().stream()
+            .map(BlockPalette.Entry::material).toList(), args.length > 1 ? positive(args[1]) : 1);
+    }
 }
