@@ -43,13 +43,10 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
 
-import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -57,6 +54,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 
@@ -113,9 +111,9 @@ public final class PainterCommands extends BaseCommand {
     private final PixelPainter plugin;
     private final ChatPanels panels;
     private final Map<String, Handler> handlers = new LinkedHashMap<>();
-    private final Map<UUID, UUID> pending = new HashMap<>();
-    private final Set<UUID> fileOperations = new HashSet<>();
-    private final Map<UUID, Runnable> confirmations = new HashMap<>();
+    private final Map<UUID, UUID> pending = new ConcurrentHashMap<>();
+    private final Set<UUID> fileOperations = ConcurrentHashMap.newKeySet();
+    private final Map<UUID, Runnable> confirmations = new ConcurrentHashMap<>();
 
     /**
      * Creates command dispatch and panel renderers for an enabled plugin.
@@ -499,7 +497,7 @@ public final class PainterCommands extends BaseCommand {
                 world, settings, true));
 
             confirmations.put(owner, confirmation);
-            Bukkit.getScheduler().runTaskLater(plugin, () -> confirmations.remove(owner, confirmation), CONFIRMATION_TICKS);
+            plugin.scheduling().delayed(() -> confirmations.remove(owner, confirmation), CONFIRMATION_TICKS);
 
             var messages = plugin.messages();
             Component button = messages.get("chat.confirm-button").clickEvent(ClickEvent.runCommand("/pp confirm"))
@@ -538,22 +536,22 @@ public final class PainterCommands extends BaseCommand {
             throw new PaintException(PaintError.PREPARING);
         }
 
-        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+        plugin.scheduling().delayed(() -> {
             if (token.equals(pending.get(owner)) && player.isOnline()) {
-                plugin.messages().actionBar(player, "commands.preparing");
+                plugin.scheduling().entity(player, () -> plugin.messages().actionBar(player, "commands.preparing"));
             }
         }, PREPARING_DELAY_TICKS);
         plugin.io(task, result -> {
             fileOperations.remove(owner);
 
             if (pending.remove(owner, token) && player.isOnline()) {
-                guarded(player, () -> completed.accept(result));
+                plugin.scheduling().entity(player, () -> guarded(player, () -> completed.accept(result)));
             }
         }, exception -> {
             fileOperations.remove(owner);
 
             if (pending.remove(owner, token) && player.isOnline()) {
-                error(player, exception);
+                plugin.scheduling().entity(player, () -> error(player, exception));
             }
         });
     }
