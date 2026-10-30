@@ -153,6 +153,10 @@ The v1 `Custom-Materials-Enabled` / `Custom-Materials` allowlist remains readabl
 
 Version 2.0 intentionally ends support for legacy Minecraft and Spigot versions; see [Compatibility](#compatibility). The v1 implementation kept undo only in memory, so its old undo state cannot be migrated. Unlike v1, requested height is no longer doubled internally.
 
+## Statistics
+
+PixelPainter reports anonymous, aggregate usage statistics through [bStats](https://bstats.org/plugin/bukkit/Pixel%20Painter/16044) and adds no custom charts or player identifiers. Disable reporting by setting `enabled: false` in `plugins/bStats/config.yml` and restarting.
+
 ## Development
 
 ```text

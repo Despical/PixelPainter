@@ -34,6 +34,7 @@ import dev.despical.pixelpainter.storage.UndoStore;
 
 import com.twelvemonkeys.imageio.plugins.webp.WebPImageReaderSpi;
 
+import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -68,6 +69,7 @@ public final class PixelPainter extends JavaPlugin {
     private ImageStore images;
     private PaintService painter;
     private PainterCommands commands;
+    private Metrics metrics;
     private BukkitCommandManager commandManager;
     private volatile List<String> imageNames = List.of();
 
@@ -81,6 +83,7 @@ public final class PixelPainter extends JavaPlugin {
             initializeServices();
             registerCommands();
             registerListeners();
+            initializeMetrics();
 
             getLogger().info("PixelPainter ready: " + palette().entries().size() + " block colors, persistent undo enabled.");
         } catch (Exception exception) {
@@ -114,6 +117,10 @@ public final class PixelPainter extends JavaPlugin {
 
     private void registerListeners() {
         Bukkit.getPluginManager().registerEvents(new PainterListener(this), this);
+    }
+
+    private void initializeMetrics() {
+        metrics = new Metrics(this, 16044);
     }
 
     /**
@@ -157,6 +164,10 @@ public final class PixelPainter extends JavaPlugin {
     @Override
     public void onDisable() {
         IIORegistry.getDefaultInstance().deregisterServiceProvider(webpReader);
+
+        if (metrics != null) {
+            metrics.shutdown();
+        }
 
         if (painter != null) {
             painter.close();
