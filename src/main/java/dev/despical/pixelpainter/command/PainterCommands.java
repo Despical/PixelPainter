@@ -218,4 +218,40 @@ public final class PainterCommands extends BaseCommand {
             error(sender, exception);
         }
     }
+
+    /**
+     * Routes estimates and the legacy block-count alias.
+     *
+     * @param sender command audience
+     * @param args positional arguments after the subcommand
+     */
+    @Subcommand("preview|howmanyblocks")
+    @CommandCompletion("@images @heights @palettes @booleans @booleans @none")
+    public void preview(CommandSender sender, String[] args) {
+        execute(sender, "preview", args);
+    }
+
+    /**
+     * Routes owner-aware journal restoration.
+     *
+     * @param sender command audience
+     * @param args positional arguments after the subcommand
+     */
+    @Subcommand("undo")
+    @CommandCompletion("@history @none")
+    public void undo(CommandSender sender, String[] args) {
+        execute(sender, "undo", args);
+    }
+
+    /**
+     * Routes preparation or active-world-job cancellation.
+     *
+     * @param sender command audience
+     * @param args positional arguments after the subcommand
+     */
+    @Subcommand("cancel")
+    @CommandCompletion("@none")
+    public void cancel(CommandSender sender, String[] args) {
+        execute(sender, "cancel", args);
+    }
 }
