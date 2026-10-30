@@ -60,4 +60,30 @@ import java.util.logging.Level;
  * Created at 15.10.2026
  */
 public final class PixelPainter extends JavaPlugin {
+
+    private ConfigurationManager configuration;
+    private TaskExecutor tasks;
+    private ImageStore images;
+    private PaintService painter;
+    private PainterCommands commands;
+    private BukkitCommandManager commandManager;
+    private List<String> imageNames = List.of();
+
+    private final WebPImageReaderSpi webpReader = new WebPImageReaderSpi();
+
+    @Override
+    public void onEnable() {
+        try {
+            IIORegistry.getDefaultInstance().registerServiceProvider(webpReader);
+            initializeConfiguration();
+            initializeServices();
+            registerCommands();
+            registerListeners();
+
+            getLogger().info("PixelPainter ready: " + palette().entries().size() + " block colors, persistent undo enabled.");
+        } catch (Exception exception) {
+            getLogger().log(Level.SEVERE, "Cannot enable PixelPainter. Check configuration and undo journals.", exception);
+            Bukkit.getPluginManager().disablePlugin(this);
+        }
+    }
 }
