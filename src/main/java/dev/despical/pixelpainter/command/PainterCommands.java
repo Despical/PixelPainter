@@ -80,4 +80,40 @@ import java.util.logging.Level;
  */
 @CommandAlias("pp|pixelpainter")
 public final class PainterCommands extends BaseCommand {
+
+    /**
+     * Defines the immutable, ordered command catalog shared by dispatch and help.
+     */
+    public static final List<CommandAction> ACTIONS = List.of(
+        new CommandAction("create", "create", "create <image> <direction> <height> [transparent] [palette] [dither]", "create ", Group.PAINT),
+        new CommandAction("preview", "howmanyblocks", "preview <image> <height> [palette] [dither] [transparent]", "preview ", Group.PAINT),
+        new CommandAction("undo", "undo", "undo [id or image]", "undo ", Group.PAINT),
+        new CommandAction("cancel", "cancel", "cancel", "cancel", Group.PAINT),
+        new CommandAction("list", "list", "list [page]", "list", Group.IMAGES),
+        new CommandAction("specs", "specs", "specs <image>", "specs ", Group.IMAGES),
+        new CommandAction("history", "undo", "history [page]", "history", Group.IMAGES),
+        new CommandAction("materials", "materials", "materials [palette] [page]", "materials", Group.IMAGES),
+        new CommandAction("download", "download", "download <image> <https-url>", "download ", Group.MANAGE),
+        new CommandAction("delete", "delete", "delete <image>", "delete ", Group.MANAGE),
+        new CommandAction("reload", "reload", "reload", "reload", Group.MANAGE),
+        new CommandAction("help", "help", "help [page]", "help", Group.REFERENCE));
+
+    /**
+     * Runs one catalog action after permissions have been verified.
+     */
+    @FunctionalInterface
+    private interface Handler {
+
+        void run(CommandSender sender, String[] args) throws Exception;
+    }
+
+    private static final long PREPARING_DELAY_TICKS = 60;
+    private static final long CONFIRMATION_TICKS = 20L * 60;
+
+    private final PixelPainter plugin;
+    private final ChatPanels panels;
+    private final Map<String, Handler> handlers = new LinkedHashMap<>();
+    private final Map<UUID, UUID> pending = new HashMap<>();
+    private final Set<UUID> fileOperations = new HashSet<>();
+    private final Map<UUID, Runnable> confirmations = new HashMap<>();
 }
