@@ -203,4 +203,31 @@ public final class PixelPainter extends JavaPlugin {
     public ImageStore images() {
         return images;
     }
+
+    /**
+     * Returns the service that owns painting and terrain restoration.
+     *
+     * @return server-thread painting service
+     */
+    public PaintService painter() {
+        return painter;
+    }
+
+    /**
+     * Returns the command dispatcher that tracks per-player preparations.
+     *
+     * @return command dispatcher after successful initialization
+     */
+    public PainterCommands commands() {
+        return commands;
+    }
+
+    /**
+     * Returns cached source names without starting file I/O during completion.
+     *
+     * @return sorted source-image names
+     */
+    public List<String> imageNames() {
+        return imageNames;
+    }
 }
