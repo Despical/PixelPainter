@@ -187,4 +187,45 @@ public record Messages(Map<String, String> templates) {
         PlainTextComponentSerializer.plainText().serialize(component).lines().map(String::strip)
             .filter(line -> !line.isEmpty()).forEach(sender::sendMessage);
     }
+
+    /**
+     * Shows a message in a player's action bar; the console receives it as plain text.
+     *
+     * @param sender command audience
+     * @param key message key
+     * @param replacements alternating placeholder names and values
+     */
+    public void actionBar(CommandSender sender, String key, Object... replacements) {
+        if (sender instanceof Player player) {
+            player.sendActionBar(get(key, replacements));
+        } else {
+            reply(sender, get(key, replacements));
+        }
+    }
+
+    /**
+     * Sends a message, as a centered panel when it has a {@code -title} companion.
+     *
+     * @param sender command audience
+     * @param key message key
+     * @param replacements alternating placeholder names and values
+     */
+    public void send(CommandSender sender, String key, Object... replacements) {
+        if (!has(key + "-title")) {
+            reply(sender, get(key, replacements));
+
+            return;
+        }
+
+        Component action = Component.empty();
+
+        if (sender.hasPermission("pp.help") && (key.equals("commands.unknown-command") || key.equals("commands.invalid-syntax"))) {
+            String style = key.equals("commands.unknown-command") ? "chat.error-help" : "chat.help";
+
+            action = get(style + "-button").clickEvent(ClickEvent.suggestCommand("/pp help"))
+                .hoverEvent(HoverEvent.showText(get(style + "-hover")));
+        }
+
+        panel(sender, key, action, replacements);
+    }
 }
