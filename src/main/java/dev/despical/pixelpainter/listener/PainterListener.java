@@ -40,4 +40,38 @@ import org.bukkit.event.world.WorldUnloadEvent;
  * Created at 30.10.2026
  */
 public final class PainterListener implements Listener {
+
+    private final PixelPainter plugin;
+
+    /**
+     * Creates a listener bound to an enabled plugin.
+     *
+     * @param plugin owning plugin that provides the painting services
+     */
+    public PainterListener(PixelPainter plugin) {
+        this.plugin = plugin;
+    }
+
+    /**
+     * Stops the departing owner's world job and cancellable image preparations.
+     *
+     * @param event player disconnect notification
+     */
+    @EventHandler
+    public void onQuit(PlayerQuitEvent event) {
+        plugin.painter().quit(event.getPlayer().getUniqueId());
+        plugin.commands().quit(event.getPlayer().getUniqueId());
+    }
+
+    /**
+     * Prevents an explicit unload from invalidating the active painting world.
+     *
+     * @param event proposed world unload
+     */
+    @EventHandler(ignoreCancelled = true)
+    public void onWorldUnload(WorldUnloadEvent event) {
+        if (plugin.painter().usesWorld(event.getWorld().getUID())) {
+            event.setCancelled(true);
+        }
+    }
 }
