@@ -598,4 +598,45 @@ public final class PainterCommands extends BaseCommand {
         plugin.getLogger().log(Level.WARNING, "PixelPainter command failed.", exception);
         plugin.messages().send(sender, "commands.operation-error");
     }
+
+    private static Player player(CommandSender sender) {
+        if (!(sender instanceof Player player)) {
+            throw new PaintException(PaintError.PLAYER);
+        }
+
+        return player;
+    }
+
+    private static int page(String[] args) {
+        count(args, 0, 1);
+
+        return args.length == 0 ? 1 : positive(args[0]);
+    }
+
+    private static int positive(String text) {
+        try {
+            int value = Integer.parseInt(text);
+
+            if (value > 0) {
+                return value;
+            }
+        } catch (NumberFormatException ignored) {
+        }
+
+        throw new PaintException(PaintError.NUMBER);
+    }
+
+    private static boolean bool(String text) {
+        if (!text.equalsIgnoreCase("true") && !text.equalsIgnoreCase("false")) {
+            throw new PaintException(PaintError.BOOLEAN);
+        }
+
+        return Boolean.parseBoolean(text);
+    }
+
+    private static void count(String[] args, int min, int max) {
+        if (args.length < min || args.length > max) {
+            throw new PaintException(PaintError.USAGE);
+        }
+    }
 }
