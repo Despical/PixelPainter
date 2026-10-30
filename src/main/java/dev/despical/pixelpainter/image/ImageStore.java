@@ -111,4 +111,41 @@ public final class ImageStore {
             return false;
         }
     }
+
+    /**
+     * Resolves a case-insensitive name or an unambiguous extensionless base name.
+     *
+     * @param name validated source name
+     * @return path of the existing source image
+     * @throws IOException if scanning fails
+     * @throws IllegalArgumentException if the name is invalid, missing or ambiguous
+     */
+    public Path resolve(String name) throws IOException {
+        validName(name);
+        List<String> matches = list().stream().filter(n -> n.equalsIgnoreCase(name)
+            || (!name.contains(".") && n.substring(0, n.lastIndexOf('.')).equalsIgnoreCase(name))).toList();
+
+        if (matches.isEmpty()) {
+            throw new PaintException(PaintError.MISSING_IMAGE);
+        }
+
+        if (matches.size() > 1) {
+            throw new PaintException(PaintError.AMBIGUOUS_IMAGE);
+        }
+
+        return folder.resolve(matches.getFirst());
+    }
+
+    /**
+     * Resolves and decodes a source image using captured limits.
+     *
+     * @param name source name
+     * @param settings request settings
+     * @return decoded image
+     * @throws IOException if the file cannot be read
+     * @throws IllegalArgumentException if name, format or size validation fails
+     */
+    public BufferedImage read(String name, Settings settings) throws IOException {
+        return decode(resolve(name), settings);
+    }
 }
