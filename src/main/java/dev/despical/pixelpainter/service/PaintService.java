@@ -30,17 +30,18 @@ import dev.despical.pixelpainter.image.PaintPlan;
 import dev.despical.pixelpainter.storage.PaintRecord;
 import dev.despical.pixelpainter.storage.UndoStore;
 
+import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
+
 import net.kyori.adventure.bossbar.BossBar;
 
 import org.bukkit.Bukkit;
-import org.bukkit.Chunk;
 import org.bukkit.World;
 import org.bukkit.block.TileState;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitTask;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -48,15 +49,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 
 /**
  * Coordinates one bounded world operation and its persistent undo history.
  * <p>
- * All public operations and the job ticker run on the server thread. Creation
- * validates bounds, budgets, history capacity and journal overlap. Chunk tickets
- * are acquired incrementally before a scan captures ordinary block data. A worker
- * saves the complete journal before painting writes are allowed.
+ * Public operations are synchronized and a ticker on the global region drives the
+ * job. Creation validates bounds, budgets, history capacity and journal overlap.
+ * Chunk tickets are acquired incrementally and loaded asynchronously before a scan
+ * captures ordinary block data. A worker saves the complete journal before painting
+ * writes are allowed.
+ * <p>
+ * Block access is grouped by chunk. Each batch runs on the region scheduler of its
+ * chunk, one batch at a time, so the service works on Paper's single server thread and
+ * on Folia's regionized threads alike. Batch results are merged under the service lock.
  * <p>
  * Restoration changes only blocks that still match the intended output. Later
  * edits and block entities are preserved; conflicts retain the journal. Cancel,
@@ -69,14 +76,16 @@ import java.util.logging.Level;
  */
 public final class PaintService {
 
+    private static final long SKIP = Long.MIN_VALUE;
+
     private final PixelPainter plugin;
     private final UndoStore store;
-    private final Map<String, PaintRecord> history = new LinkedHashMap<>();
-    private final BukkitTask ticker;
+    private final Map<String, PaintRecord> history = new ConcurrentHashMap<>();
+    private final ScheduledTask ticker;
     private Job active;
 
     /**
-     * Publishes recovered journals and registers the server-thread ticker.
+     * Publishes recovered journals and registers the global-region ticker.
      *
      * @param plugin owning enabled plugin
      * @param store persistent journal storage
@@ -86,7 +95,7 @@ public final class PaintService {
         this.plugin = plugin;
         this.store = store;
         restored.forEach(record -> history.put(record.id(), record));
-        ticker = Bukkit.getScheduler().runTaskTimer(plugin, this::tick, 1, 1);
+        ticker = plugin.scheduling().timer(this::tick);
     }
 
     /**
@@ -94,7 +103,7 @@ public final class PaintService {
      *
      * @return whether a job is active
      */
-    public boolean busy() {
+    public synchronized boolean busy() {
         return active != null;
     }
 
@@ -104,7 +113,7 @@ public final class PaintService {
      * @param world queried world UUID
      * @return whether that world is in use
      */
-    public boolean usesWorld(UUID world) {
+    public synchronized boolean usesWorld(UUID world) {
         return active != null && active.world.getUID().equals(world);
     }
 
@@ -132,8 +141,9 @@ public final class PaintService {
      * @param ignoreBorder whether a painting may extend past the world border
      * @throws PaintException if world, bounds, capacity or overlap checks fail
      */
-    public void create(Player player, String image, PaintPlan plan, Orientation orientation, Position origin, UUID worldId,
-        Settings settings, boolean ignoreBorder) {
+    public synchronized void create(Player player, String image, PaintPlan plan, Orientation orientation, Position origin,
+        UUID worldId, Settings settings, boolean ignoreBorder) {
+
         requireIdle();
 
         if (history.size() >= settings.maxHistory()) {
@@ -177,7 +187,7 @@ public final class PaintService {
      * @param requested identifier or source name, or null for the latest accessible journal
      * @throws PaintException if no journal matches or restoration cannot start
      */
-    public void undo(Player player, String requested) {
+    public synchronized void undo(Player player, String requested) {
         requireIdle();
         PaintRecord record = history(player).stream().filter(r -> requested == null || r.id().equalsIgnoreCase(requested)
             || r.image().equalsIgnoreCase(requested)).findFirst().orElseThrow(() -> new PaintException(PaintError.MISSING_HISTORY));
@@ -226,14 +236,14 @@ public final class PaintService {
      * @param player requesting owner or administrator
      * @throws PaintException if the player has no cancellable job
      */
-    public void cancel(Player player) {
+    public synchronized void cancel(Player player) {
         if (active == null || (!active.owner.equals(player.getUniqueId()) && !player.hasPermission("pp.admin"))) {
             throw new PaintException(PaintError.NO_JOB);
         }
 
         active.cancelled = true;
 
-        if (!active.waiting) {
+        if (!active.waiting && !active.inFlight) {
             end("commands.cancelled");
         }
     }
@@ -243,17 +253,17 @@ public final class PaintService {
      *
      * @param owner departing player UUID
      */
-    public void quit(UUID owner) {
+    public synchronized void quit(UUID owner) {
         if (active != null && active.owner.equals(owner)) {
             active.cancelled = true;
 
-            if (!active.waiting) {
+            if (!active.waiting && !active.inFlight) {
                 end(null);
             }
         }
     }
 
-    private void tick() {
+    private synchronized void tick() {
         if (active == null || active.waiting) {
             return;
         }
@@ -268,21 +278,25 @@ public final class PaintService {
         }
     }
 
-    private void end(String key) {
+    private synchronized void end(String key) {
         Job job = active;
 
         if (job == null) {
             return;
         }
 
-        job.tickets.forEach(chunk -> chunk.removePluginChunkTicket(plugin));
+        job.tickets.forEach(chunk -> job.world.removePluginChunkTicket(chunk.x(), chunk.z(), plugin));
         Player player = Bukkit.getPlayer(job.owner);
 
         if (player != null) {
             player.hideBossBar(job.bar);
 
             if (key != null) {
-                plugin.messages().send(player, key, "id", job.id, "blocks", job.changed, "conflicts", job.conflicts);
+                String id = job.id;
+                int blocks = job.changed, conflicts = job.conflicts;
+
+                plugin.scheduling().entity(player, () -> plugin.messages().send(player, key, "id", id, "blocks", blocks,
+                    "conflicts", conflicts));
             }
         }
 
@@ -292,9 +306,13 @@ public final class PaintService {
     /**
      * Cancels the ticker and releases active chunk tickets and the progress bar.
      */
-    public void close() {
+    public synchronized void close() {
         ticker.cancel();
         end(null);
+    }
+
+    private static long key(int chunkX, int chunkZ) {
+        return ((long) chunkX << 32) | (chunkZ & 0xFFFFFFFFL);
     }
 
     /**
@@ -310,11 +328,31 @@ public final class PaintService {
     }
 
     /**
+     * Identifies one chunk column of a world.
+     *
+     * @param x chunk X coordinate
+     * @param z chunk Z coordinate
+     */
+    private record ChunkPos(int x, int z) {
+    }
+
+    /**
+     * Lists the work items that fall into one chunk and fit one tick's block budget.
+     *
+     * @param chunkX chunk X coordinate
+     * @param chunkZ chunk Z coordinate
+     * @param indices pixel indices for a scan, or journal indices for writes and restoration
+     */
+    private record Batch(int chunkX, int chunkZ, int[] indices) {
+    }
+
+    /**
      * Carries the state machine for chunk loading, capture and bounded block writes.
      * <p>
-     * A waiting journal callback retains the service slot. A durable journal is
-     * published even when cancellation wins the write race. Block-data objects are
-     * cached only inside this server-thread job.
+     * All fields are guarded by the service lock. Region tasks read only the immutable
+     * inputs and the thread-safe block-data cache, then merge their results under the
+     * lock. A waiting journal callback or a running batch retains the service slot. A
+     * durable journal is published even when cancellation wins the write race.
      */
     private final class Job {
 
@@ -327,14 +365,18 @@ public final class PaintService {
         private final Orientation orientation;
         private final Position origin;
         private final PaintRecord undo;
-        private final List<Chunk> tickets = new ArrayList<>();
+        private final List<ChunkPos> area = new ArrayList<>();
+        private final List<ChunkPos> tickets = new ArrayList<>();
         private final List<PaintRecord.Change> changes = new ArrayList<>();
-        private final Map<String, BlockData> data = new HashMap<>();
-        private final BossBar bar = BossBar.bossBar(plugin.messages().get("progress.stage-chunks"), 0, BossBar.Color.GREEN, BossBar.Overlay.PROGRESS);
-
+        private final Map<String, BlockData> data = new ConcurrentHashMap<>();
+        private final BossBar bar = BossBar.bossBar(plugin.messages().get("progress.stage-chunks"), 0,
+            BossBar.Color.GREEN, BossBar.Overlay.PROGRESS);
         private Stage stage = Stage.CHUNKS;
-        private int chunkX, chunkZ, cursor, changed, conflicts;
-        private boolean waiting, cancelled;
+        private List<Batch> batches = List.of();
+        private List<PaintRecord.Change> targets = List.of();
+        private Throwable failure;
+        private int chunkCursor, batchCursor, done, total, changed, conflicts;
+        private boolean waiting, cancelled, inFlight;
 
         private Job(Player player, World world, Bounds bounds, Settings settings, String id, String image,
             PaintPlan plan, Orientation orientation, Position origin, PaintRecord undo) {
@@ -349,8 +391,12 @@ public final class PaintService {
             this.orientation = orientation;
             this.origin = origin;
             this.undo = undo;
-            this.chunkX = bounds.minX() >> 4;
-            this.chunkZ = bounds.minZ() >> 4;
+
+            for (int z = bounds.minZ() >> 4; z <= bounds.maxZ() >> 4; z++) {
+                for (int x = bounds.minX() >> 4; x <= bounds.maxX() >> 4; x++) {
+                    area.add(new ChunkPos(x, z));
+                }
+            }
 
             if (settings.progress()) {
                 player.showBossBar(bar);
@@ -358,6 +404,25 @@ public final class PaintService {
         }
 
         private void step() {
+            if (inFlight) {
+                return;
+            }
+
+            if (failure != null) {
+                Throwable cause = failure;
+
+                failure = null;
+
+                if (cause instanceof PaintException paint) {
+                    end(paint.error().key());
+                } else {
+                    plugin.getLogger().log(Level.SEVERE, "Painting stopped; any saved undo journal is retained.", cause);
+                    end("commands.operation-failed");
+                }
+
+                return;
+            }
+
             Player player = Bukkit.getPlayer(owner);
 
             if (cancelled || player == null || !player.isOnline()) {
@@ -367,92 +432,173 @@ public final class PaintService {
             }
 
             if (stage == Stage.CHUNKS) {
-                Chunk chunk = world.getChunkAt(chunkX, chunkZ);
+                loadChunk();
+            } else if (batchCursor < batches.size()) {
+                runBatch();
+            } else {
+                finishStage();
+            }
+        }
 
-                chunk.addPluginChunkTicket(plugin);
-                tickets.add(chunk);
+        private void loadChunk() {
+            ChunkPos chunk = area.get(chunkCursor++);
 
-                if (++chunkX > (bounds.maxX() >> 4)) {
-                    chunkX = bounds.minX() >> 4;
-                    chunkZ++;
+            inFlight = true;
+            world.addPluginChunkTicket(chunk.x(), chunk.z(), plugin);
+            tickets.add(chunk);
+            progress(chunkCursor, area.size());
+
+            world.getChunkAtAsync(chunk.x(), chunk.z()).whenComplete((loaded, throwable) -> {
+                synchronized (PaintService.this) {
+                    inFlight = false;
+
+                    if (throwable != null) {
+                        failure = throwable;
+                    } else if (chunkCursor == area.size()) {
+                        beginWork();
+                    }
                 }
+            });
+        }
 
-                if (chunkZ > (bounds.maxZ() >> 4)) {
-                    stage = undo == null ? Stage.SCAN : Stage.UNDO;
-                }
-
-                progress(tickets.size(), (int) bounds.chunks());
-
-                return;
+        private void beginWork() {
+            if (undo == null) {
+                stage = Stage.SCAN;
+                total = plan.painted();
+                batches = group(scanKeys());
+            } else {
+                stage = Stage.UNDO;
+                targets = undo.changes();
+                total = targets.size();
+                batches = group(changeKeys());
             }
 
+            batchCursor = 0;
+            done = 0;
+        }
+
+        private long[] scanKeys() {
+            long[] keys = new long[plan.size()];
+
+            for (int index = 0; index < keys.length; index++) {
+                if (plan.block(index) == null) {
+                    keys[index] = SKIP;
+
+                    continue;
+                }
+
+                Position p = orientation.position(origin, index % plan.width(), index / plan.width(), plan.height());
+
+                keys[index] = key(p.x() >> 4, p.z() >> 4);
+            }
+
+            return keys;
+        }
+
+        private long[] changeKeys() {
+            long[] keys = new long[targets.size()];
+
+            for (int index = 0; index < keys.length; index++) {
+                Position p = targets.get(index).position();
+
+                keys[index] = key(p.x() >> 4, p.z() >> 4);
+            }
+
+            return keys;
+        }
+
+        private List<Batch> group(long[] keys) {
+            Map<Long, Integer> counts = new LinkedHashMap<>();
+
+            for (long key : keys) {
+                if (key != SKIP) {
+                    counts.merge(key, 1, Integer::sum);
+                }
+            }
+
+            Map<Long, int[]> members = new LinkedHashMap<>();
+            Map<Long, Integer> filled = new HashMap<>();
+
+            counts.forEach((key, count) -> members.put(key, new int[count]));
+
+            for (int index = 0; index < keys.length; index++) {
+                if (keys[index] != SKIP) {
+                    members.get(keys[index])[filled.merge(keys[index], 1, Integer::sum) - 1] = index;
+                }
+            }
+
+            List<Batch> result = new ArrayList<>();
             int budget = settings.blocksPerTick();
 
-            if (stage == Stage.SCAN) {
-                while (budget-- > 0 && cursor < plan.size()) {
-                    int index = cursor++;
-                    String after = plan.block(index);
-
-                    if (after == null) {
-                        continue;
-                    }
-
-                    Position p = orientation.position(origin, index % plan.width(), index / plan.width(), plan.height());
-                    var block = world.getBlockAt(p.x(), p.y(), p.z());
-
-                    if (block.getState(false) instanceof TileState) {
-                        throw new PaintException(PaintError.BLOCK_ENTITY);
-                    }
-
-                    String before = block.getBlockData().getAsString();
-
-                    if (!before.equals(after)) {
-                        changes.add(new PaintRecord.Change(p, before, after));
-                    }
+            members.forEach((key, indices) -> {
+                for (int from = 0; from < indices.length; from += budget) {
+                    result.add(new Batch((int) (key >> 32), (int) (long) key,
+                        Arrays.copyOfRange(indices, from, Math.min(indices.length, from + budget))));
                 }
+            });
 
-                progress(cursor, plan.size());
+            return result;
+        }
 
-                if (cursor == plan.size()) {
-                    if (changes.isEmpty()) {
-                        end("commands.nothing-changed");
+        private void runBatch() {
+            Batch batch = batches.get(batchCursor++);
+            Stage current = stage;
 
-                        return;
-                    }
+            inFlight = true;
+            plugin.scheduling().region(world, batch.chunkX(), batch.chunkZ(), () -> process(current, batch));
+        }
 
-                    PaintRecord record = new PaintRecord(id, owner, world.getUID(), image, System.currentTimeMillis(), bounds, changes);
+        private void process(Stage current, Batch batch) {
+            List<PaintRecord.Change> found = new ArrayList<>();
+            int[] counters = new int[2];
+            Throwable error = null;
 
-                    stage = Stage.SAVE;
-                    progress(0, 1);
-                    waiting = true;
-                    plugin.io(() -> {
-                        store.save(record);
-
-                        return record;
-                    }, saved -> {
-                        history.put(saved.id(), saved);
-                        waiting = false;
-
-                        if (active != this) {
-                            return;
-                        }
-
-                        if (cancelled) {
-                            end("commands.cancelled");
-                        } else {
-                            stage = Stage.BUILD;
-                            cursor = 0;
-                        }
-                    }, this::failed);
+            try {
+                if (current == Stage.SCAN) {
+                    scan(batch, found);
+                } else {
+                    write(batch, counters);
                 }
-
-                return;
+            } catch (Throwable throwable) {
+                error = throwable;
             }
 
-            List<PaintRecord.Change> targets = undo == null ? changes : undo.changes();
+            synchronized (PaintService.this) {
+                changes.addAll(found);
+                changed += counters[0];
+                conflicts += counters[1];
+                done += batch.indices().length;
 
-            while (budget-- > 0 && cursor < targets.size()) {
-                var change = targets.get(cursor++);
+                if (error != null) {
+                    failure = error;
+                }
+
+                inFlight = false;
+                progress(done, total);
+            }
+        }
+
+        private void scan(Batch batch, List<PaintRecord.Change> found) {
+            for (int index : batch.indices()) {
+                String after = plan.block(index);
+                Position p = orientation.position(origin, index % plan.width(), index / plan.width(), plan.height());
+                var block = world.getBlockAt(p.x(), p.y(), p.z());
+
+                if (block.getState(false) instanceof TileState) {
+                    throw new PaintException(PaintError.BLOCK_ENTITY);
+                }
+
+                String before = block.getBlockData().getAsString();
+
+                if (!before.equals(after)) {
+                    found.add(new PaintRecord.Change(p, before, after));
+                }
+            }
+        }
+
+        private void write(Batch batch, int[] counters) {
+            for (int index : batch.indices()) {
+                var change = targets.get(index);
                 Position p = change.position();
                 var block = world.getBlockAt(p.x(), p.y(), p.z());
                 String current = block.getBlockData().getAsString();
@@ -464,36 +610,73 @@ public final class PaintService {
                 }
 
                 if (!matches(current, expected) || block.getState(false) instanceof TileState) {
-                    conflicts++;
+                    counters[1]++;
                     continue;
                 }
 
                 block.setBlockData(data.computeIfAbsent(desired, Bukkit::createBlockData), false);
-                changed++;
+                counters[0]++;
             }
+        }
 
-            progress(cursor, targets.size());
+        private void finishStage() {
+            if (stage == Stage.SCAN) {
+                if (changes.isEmpty()) {
+                    end("commands.nothing-changed");
 
-            if (cursor == targets.size()) {
-                if (undo == null) {
-                    end("commands.completed");
-                } else if (conflicts > 0) {
-                    end("commands.undo-conflicts");
-                } else {
-                    waiting = true;
-                    plugin.io(() -> {
-                        store.delete(id);
+                    return;
+                }
 
-                        return id;
-                    }, removed -> {
+                PaintRecord record = new PaintRecord(id, owner, world.getUID(), image, System.currentTimeMillis(), bounds, changes);
+
+                stage = Stage.SAVE;
+                progress(0, 1);
+                waiting = true;
+                plugin.io(() -> {
+                    store.save(record);
+
+                    return record;
+                }, saved -> {
+                    synchronized (PaintService.this) {
+                        history.put(saved.id(), saved);
+                        waiting = false;
+
+                        if (active != this) {
+                            return;
+                        }
+
+                        if (cancelled) {
+                            end("commands.cancelled");
+                        } else {
+                            stage = Stage.BUILD;
+                            targets = List.copyOf(changes);
+                            total = targets.size();
+                            batches = group(changeKeys());
+                            batchCursor = 0;
+                            done = 0;
+                        }
+                    }
+                }, this::failed);
+            } else if (stage == Stage.BUILD) {
+                end("commands.completed");
+            } else if (conflicts > 0) {
+                end("commands.undo-conflicts");
+            } else {
+                waiting = true;
+                plugin.io(() -> {
+                    store.delete(id);
+
+                    return id;
+                }, removed -> {
+                    synchronized (PaintService.this) {
                         history.remove(removed);
                         waiting = false;
 
                         if (active == this) {
                             end("commands.undone");
                         }
-                    }, this::failed);
-                }
+                    }
+                }, this::failed);
             }
         }
 
@@ -509,7 +692,8 @@ public final class PaintService {
 
             String material = material(expected);
 
-            return material(current).equals(material) || BlockPalette.DECAYING.getOrDefault(material, Set.of()).contains(material(current));
+            return material(current).equals(material)
+                || BlockPalette.DECAYING.getOrDefault(material, Set.of()).contains(material(current));
         }
 
         private static String material(String data) {
@@ -525,11 +709,13 @@ public final class PaintService {
         }
 
         private void failed(Exception exception) {
-            plugin.getLogger().log(Level.SEVERE, "Undo journal operation failed.", exception);
-            waiting = false;
+            synchronized (PaintService.this) {
+                plugin.getLogger().log(Level.SEVERE, "Undo journal operation failed.", exception);
+                waiting = false;
 
-            if (active == this) {
-                end("commands.operation-failed");
+                if (active == this) {
+                    end("commands.operation-failed");
+                }
             }
         }
     }
