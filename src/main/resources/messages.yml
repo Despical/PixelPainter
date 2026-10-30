@@ -122,3 +122,13 @@ commands.nothing-changed: '<#A8B8C9>No blocks needed changing. No undo journal w
 commands.operation-failed-title: '<#FF5555><bold>Painting Stopped</bold></#FF5555>'
 commands.operation-failed: '<#D99089>Check the console. Any saved undo journal is retained: {id}.</#D99089>'
 commands.downloaded-title: '<#DCE3EE><bold>Image Downloaded</bold></#DCE3EE>'
+
+commands.downloaded: '<#A8B8C9>Downloaded {image}.</#A8B8C9>'
+commands.deleted-title: '<#DCE3EE><bold>Image Deleted</bold></#DCE3EE>'
+commands.deleted: '<#DCE3EE>{image}</#DCE3EE> <#606A7B>·</#606A7B> <#A8B8C9>Placed art and undo records are retained.</#A8B8C9>'
+commands.reloaded-title: '<#DCE3EE><bold>Settings Reloaded</bold></#DCE3EE>'
+commands.reloaded: '<#A8B8C9>Settings, messages and palette reloaded.</#A8B8C9>'
+commands.reload-rejected-title: '<#FF5555><bold>Reload Rejected</bold></#FF5555>'
+commands.reload-rejected: '<#D99089>Previous settings remain active. Reason: {reason}</#D99089>'
+commands.specs-title: '<#DCE3EE><bold>Image Specs</bold></#DCE3EE>'
+commands.specs: '<#DCE3EE>{image}</#DCE3EE> <#606A7B>·</#606A7B> <#A8B8C9>{width} × {height} source pixels</#A8B8C9>'
