@@ -149,4 +149,42 @@ public record Messages(Map<String, String> templates) {
 
         return MiniMessage.miniMessage().deserialize(template, tags.build());
     }
+
+    /**
+     * Renders a template as plain text.
+     *
+     * @param key message key
+     * @param replacements alternating placeholder names and values
+     * @return rendered text without formatting or interactions
+     */
+    public String text(String key, Object... replacements) {
+        return PlainTextComponentSerializer.plainText().serialize(get(key, replacements));
+    }
+
+    /**
+     * Checks whether a message exists.
+     *
+     * @param key message key
+     * @return whether the template is defined
+     */
+    public boolean has(String key) {
+        return templates.containsKey(key);
+    }
+
+    /**
+     * Delivers a component to a player, or unformatted non-empty lines to the console.
+     *
+     * @param sender command audience
+     * @param component rendered message
+     */
+    public void reply(CommandSender sender, Component component) {
+        if (sender instanceof Player) {
+            sender.sendMessage(component);
+
+            return;
+        }
+
+        PlainTextComponentSerializer.plainText().serialize(component).lines().map(String::strip)
+            .filter(line -> !line.isEmpty()).forEach(sender::sendMessage);
+    }
 }
