@@ -228,4 +228,31 @@ public record Messages(Map<String, String> templates) {
 
         panel(sender, key, action, replacements);
     }
+
+    /**
+     * Renders a centered title and body with an optional action row.
+     *
+     * @param sender command audience
+     * @param key message key whose {@code -title} companion is the heading
+     * @param action optional action component; {@link Component#empty()} omits it
+     * @param replacements alternating placeholder names and values
+     */
+    public void panel(CommandSender sender, String key, Component action, Object... replacements) {
+        if (!(sender instanceof Player)) {
+            reply(sender, get(key, replacements));
+            reply(sender, action);
+
+            return;
+        }
+
+        ChatLayout.header(sender, this, key + "-title", replacements);
+        ChatLayout.centered(sender, this, get(key, replacements), false);
+
+        if (!action.equals(Component.empty())) {
+            reply(sender, Component.empty());
+            ChatLayout.centered(sender, this, action, false);
+        }
+
+        reply(sender, Component.empty());
+    }
 }
