@@ -99,4 +99,55 @@ public final class UndoStore {
 
         return List.copyOf(records);
     }
+
+    private PaintRecord read(Path path) throws IOException {
+        try (var input = new DataInputStream(new BufferedInputStream(Files.newInputStream(path)))) {
+            if (input.readInt() != MAGIC) {
+                throw new IOException("Unsupported undo journal: " + path.getFileName());
+            }
+
+            String id = input.readUTF();
+
+            if (!id.matches("[a-f0-9]{12}") || !path.getFileName().toString().equals(id + ".ppu")) {
+                throw new IOException("Invalid undo journal ID.");
+            }
+
+            UUID owner = UUID.fromString(input.readUTF()), world = UUID.fromString(input.readUTF());
+            String image = input.readUTF();
+            long created = input.readLong();
+            Bounds bounds = new Bounds(input.readInt(), input.readInt(), input.readInt(), input.readInt(), input.readInt(), input.readInt());
+
+            if (bounds.minX() > bounds.maxX() || bounds.minY() > bounds.maxY() || bounds.minZ() > bounds.maxZ()) {
+                throw new IOException("Invalid undo bounds.");
+            }
+
+            int count = input.readInt();
+            if (count <= 0 || count > 1048576) {
+                throw new IOException("Invalid undo journal size.");
+            }
+
+            var changes = new ArrayList<PaintRecord.Change>(count);
+
+            for (int i = 0; i < count; i++) {
+                Position position = new Position(input.readInt(), input.readInt(), input.readInt());
+
+                if (position.x() < bounds.minX() || position.x() > bounds.maxX()
+                    || position.y() < bounds.minY() || position.y() > bounds.maxY()
+                    || position.z() < bounds.minZ() || position.z() > bounds.maxZ()
+                ) {
+                    throw new IOException("Undo block lies outside journal bounds.");
+                }
+
+                changes.add(new PaintRecord.Change(position, input.readUTF(), input.readUTF()));
+            }
+
+            if (input.read() != -1) {
+                throw new IOException("Trailing data in undo journal.");
+            }
+
+            return new PaintRecord(id, owner, world, image, created, bounds, changes);
+        } catch (IllegalArgumentException exception) {
+            throw new IOException("Invalid undo journal: " + path.getFileName(), exception);
+        }
+    }
 }
