@@ -150,4 +150,54 @@ public final class UndoStore {
             throw new IOException("Invalid undo journal: " + path.getFileName(), exception);
         }
     }
+
+    /**
+     * Writes and flushes one journal before its world mutation is allowed.
+     *
+     * @param record journal payload with a unique, valid identifier
+     * @throws IOException if writing, flushing or promoting the file fails
+     */
+    public void save(PaintRecord record) throws IOException {
+        Path temporary = Files.createTempFile(folder, record.id(), ".tmp");
+
+        try {
+            try (var output = new DataOutputStream(new BufferedOutputStream(Files.newOutputStream(temporary)))) {
+                output.writeInt(MAGIC);
+                output.writeUTF(record.id());
+                output.writeUTF(record.owner().toString());
+                output.writeUTF(record.world().toString());
+                output.writeUTF(record.image());
+                output.writeLong(record.created());
+
+                Bounds b = record.bounds();
+                output.writeInt(b.minX());
+                output.writeInt(b.minY());
+                output.writeInt(b.minZ());
+                output.writeInt(b.maxX());
+                output.writeInt(b.maxY());
+                output.writeInt(b.maxZ());
+                output.writeInt(record.changes().size());
+
+                for (var change : record.changes()) {
+                    output.writeInt(change.position().x());
+                    output.writeInt(change.position().y());
+                    output.writeInt(change.position().z());
+                    output.writeUTF(change.before());
+                    output.writeUTF(change.after());
+                }
+            }
+
+            try (var channel = FileChannel.open(temporary, StandardOpenOption.WRITE)) {
+                channel.force(true);
+            }
+
+            try {
+                Files.move(temporary, folder.resolve(record.id() + ".ppu"), StandardCopyOption.ATOMIC_MOVE);
+            } catch (AtomicMoveNotSupportedException ignored) {
+                Files.move(temporary, folder.resolve(record.id() + ".ppu"));
+            }
+        } finally {
+            Files.deleteIfExists(temporary);
+        }
+    }
 }
