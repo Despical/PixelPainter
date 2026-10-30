@@ -123,3 +123,15 @@ blocks:
 
 Then run `/pp reload`. `palette.include` and `palette.exclude` filter the active palette. An invalid or empty palette rejects the reload, preserving previous settings. Some blocks have different top and side textures; the supplied color is a representative side sample. Leaves are placed with persistent block data to prevent natural decay. Foliage and translucent blocks vary with biome colors, light and background blocks; exclude those materials if you prefer opaque textures. Blocks that change on their own after placement (unwaxed copper, mycelium and nylium) and all glass are ignored even when listed, so paintings keep their colors and can always be restored.
 
+## Performance and terrain recovery
+
+Image decoding, resizing, color matching, downloads and journal writes run on two background workers with a bounded queue. Every world read and write runs on the server thread. One world job runs at a time, acquires one chunk per tick and processes at most `performance.blocks-per-tick` pixels or blocks per tick. Chunk generation can still take time; prefer already generated regions for large artwork.
+
+Before painting, Pixel Painter validates the world border, build height, chunk budget, history capacity and overlap with existing journals. It captures original block data and saves a durable journal **before** placing blocks. Paintings never overwrite block entities such as chests, signs or spawners. If one is found during scanning, the operation stops before placement. Transparent pixels and blocks already matching the target are not captured. Physics updates are disabled during placement and restoration.
+
+Undo journals are stored in `plugins/PixelPainter/undo` and survive restarts, interrupted builds and interrupted restoration. They preserve block type and block properties, including orientation and waterlogging. Block-entity NBT is not needed because those blocks are never overwritten. Journals can describe a partially completed painting; history counts are recorded changes, rather than guaranteed placed blocks.
+
+Undo restores only blocks still matching the painting. Later changes and block entities are preserved. Conflicts retain the journal for a later retry. Successful restoration removes its journal. Saved regions cannot overlap, and reaching either undo limit rejects new work instead of evicting recovery data. `pp.admin` permits viewing and undoing another player's journals and cancelling their current world operation.
+
+Cancellation and disconnect stop preparation or world writes. Already placed blocks remain recoverable with `/pp undo <id>`. File downloads and source deletion finish once started; cancelling does not roll back a file operation. Shutdown releases progress bars and chunk tickets; interrupted journals are loaded again at startup. A corrupt journal fails startup with a console error and is retained for maintenance.
+
