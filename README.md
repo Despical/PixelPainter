@@ -45,3 +45,11 @@ PixelPainter 2.0 compiles against the Paper 1.21.11 API and declares that minimu
 
 Block materials that do not exist on the running server version are skipped, so the same `palette.yml` works across the supported range.
 
+## Installation
+
+1. Build with `./gradlew clean build` or `gradlew.bat clean build`.
+2. Place `build/libs/pixel-painter-2.0.0.jar` in the server's `plugins` directory and restart.
+3. Put PNG, JPEG or WebP files in `plugins/PixelPainter/images`, or use the download command with a trusted host configured in `config.yml`.
+
+All permissions default to operators. Grant individual `pp.*` children to trusted builders as appropriate. World operations run with those administrative permissions; this plugin does not integrate with region protection or survival inventories.
+
