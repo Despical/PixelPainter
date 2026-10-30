@@ -48,4 +48,45 @@ import java.util.function.Consumer;
  * Created at 15.10.2026
  */
 public final class TaskExecutor implements AutoCloseable {
+
+    private final JavaPlugin plugin;
+    private final ThreadPoolExecutor workers;
+
+    /**
+     * Creates the bounded executor without starting any work.
+     *
+     * @param plugin owner used to schedule server-thread callbacks
+     */
+    public TaskExecutor(JavaPlugin plugin) {
+        this.plugin = plugin;
+        this.workers = new ThreadPoolExecutor(2, 2, 0, TimeUnit.SECONDS, new ArrayBlockingQueue<>(8), runnable -> {
+            Thread thread = new Thread(runnable, "PixelPainter-IO");
+            thread.setDaemon(true);
+            return thread;
+        });
+    }
+
+    /**
+     * Submits a task from the server thread and delivers its result there.
+     *
+     * @param <T> result type
+     * @param task blocking work without live world access
+     * @param completed server-thread success callback
+     * @param failed server-thread error callback; rejection is delivered immediately
+     */
+    public <T> void submit(Callable<T> task, Consumer<T> completed, Consumer<Exception> failed) {
+        try {
+            workers.execute(() -> {
+                try {
+                    T result = task.call();
+
+                    dispatch(() -> completed.accept(result));
+                } catch (Exception exception) {
+                    dispatch(() -> failed.accept(exception));
+                }
+            });
+        } catch (RejectedExecutionException exception) {
+            failed.accept(new PaintException(PaintError.QUEUE_FULL, exception));
+        }
+    }
 }
