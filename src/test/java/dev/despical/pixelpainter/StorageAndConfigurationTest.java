@@ -163,4 +163,41 @@ class StorageAndConfigurationTest {
         assertTrue(messages.has("chat.separator"));
         assertThrows(Exception.class, () -> Messages.load(temporary.resolve("missing.yml")));
     }
+
+    @Test
+    void messagesKeepUntrustedNamesLiteralAndValidateYamlTypes() throws Exception {
+        Path file = temporary.resolve("messages.yml");
+
+        Files.writeString(file, "{}");
+        Messages messages = Messages.load(file);
+        String text = PlainTextComponentSerializer.plainText().serialize(messages.get("commands.downloaded", "image", "<red>test</red>"));
+
+        assertTrue(text.contains("<red>test</red>"));
+        Files.writeString(file, "prefix: 42\n");
+        assertThrows(IllegalArgumentException.class, () -> Messages.load(file));
+        Files.writeString(file, "prefix: '<bold>missing close'\n");
+        assertThrows(Exception.class, () -> Messages.load(file));
+    }
+
+    @Test
+    void everyErrorHasAPanelWithTitle() throws Exception {
+        Path file = temporary.resolve("messages.yml");
+
+        Files.writeString(file, "{}");
+        Messages messages = Messages.load(file);
+
+        for (dev.despical.pixelpainter.core.PaintError error : dev.despical.pixelpainter.core.PaintError.values()) {
+            assertTrue(messages.has(error.key()), error.key());
+            assertTrue(messages.has(error.key() + "-title"), error.key() + "-title");
+        }
+    }
+
+    @Test
+    void centeredPanelsUseBitmapFontWidth() {
+        var narrow = net.kyori.adventure.text.Component.text("iii");
+        var wide = net.kyori.adventure.text.Component.text("WWW");
+
+        assertTrue(dev.despical.pixelpainter.command.ChatLayout.pixelWidth(narrow, false)
+            < dev.despical.pixelpainter.command.ChatLayout.pixelWidth(wide, false));
+    }
 }
