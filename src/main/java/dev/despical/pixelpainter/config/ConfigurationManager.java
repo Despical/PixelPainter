@@ -99,4 +99,22 @@ public final class ConfigurationManager {
     public Settings settings() {
         return settings;
     }
+
+    /**
+     * Returns the current message templates.
+     *
+     * @return validated messages after initialization
+     */
+    public Messages messages() {
+        return messages;
+    }
+
+    /**
+     * Returns the current server-resolved block palette.
+     *
+     * @return validated palette after initialization
+     */
+    public BlockPalette palette() {
+        return palette;
+    }
 }
