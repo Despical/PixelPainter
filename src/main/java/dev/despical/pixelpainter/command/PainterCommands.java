@@ -557,4 +557,45 @@ public final class PainterCommands extends BaseCommand {
             }
         });
     }
+
+    private <T> void prepareFile(Player player, Callable<T> task, Consumer<T> completed) {
+        if (pending.containsKey(player.getUniqueId())) {
+            throw new PaintException(PaintError.PREPARING);
+        }
+
+        fileOperations.add(player.getUniqueId());
+        prepare(player, task, completed);
+    }
+
+    /**
+     * Forgets cancellable preparations while retaining active file reservations.
+     *
+     * @param owner departing player UUID
+     */
+    public void quit(UUID owner) {
+        confirmations.remove(owner);
+
+        if (!fileOperations.contains(owner)) {
+            pending.remove(owner);
+        }
+    }
+
+    private void guarded(CommandSender sender, Runnable runnable) {
+        try {
+            runnable.run();
+        } catch (Exception exception) {
+            error(sender, exception);
+        }
+    }
+
+    private void error(CommandSender sender, Exception exception) {
+        if (exception instanceof PaintException paint) {
+            plugin.messages().send(sender, paint.error().key());
+
+            return;
+        }
+
+        plugin.getLogger().log(Level.WARNING, "PixelPainter command failed.", exception);
+        plugin.messages().send(sender, "commands.operation-error");
+    }
 }
