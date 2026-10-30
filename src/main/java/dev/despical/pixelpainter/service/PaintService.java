@@ -317,5 +317,44 @@ public final class PaintService {
      * cached only inside this server-thread job.
      */
     private final class Job {
+
+        private final UUID owner;
+        private final World world;
+        private final Bounds bounds;
+        private final Settings settings;
+        private final String id, image;
+        private final PaintPlan plan;
+        private final Orientation orientation;
+        private final Position origin;
+        private final PaintRecord undo;
+        private final List<Chunk> tickets = new ArrayList<>();
+        private final List<PaintRecord.Change> changes = new ArrayList<>();
+        private final Map<String, BlockData> data = new HashMap<>();
+        private final BossBar bar = BossBar.bossBar(plugin.messages().get("progress.stage-chunks"), 0, BossBar.Color.GREEN, BossBar.Overlay.PROGRESS);
+
+        private Stage stage = Stage.CHUNKS;
+        private int chunkX, chunkZ, cursor, changed, conflicts;
+        private boolean waiting, cancelled;
+
+        private Job(Player player, World world, Bounds bounds, Settings settings, String id, String image,
+            PaintPlan plan, Orientation orientation, Position origin, PaintRecord undo) {
+
+            this.owner = player.getUniqueId();
+            this.world = world;
+            this.bounds = bounds;
+            this.settings = settings;
+            this.id = id;
+            this.image = image;
+            this.plan = plan;
+            this.orientation = orientation;
+            this.origin = origin;
+            this.undo = undo;
+            this.chunkX = bounds.minX() >> 4;
+            this.chunkZ = bounds.minZ() >> 4;
+
+            if (settings.progress()) {
+                player.showBossBar(bar);
+            }
+        }
     }
 }
