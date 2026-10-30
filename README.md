@@ -32,3 +32,16 @@
 - **Paper 1.21.11 through 26.3 inclusive.**
 - Minecraft Java Edition clients that can join the server's protocol version.
 
+## Compatibility
+
+PixelPainter 2.0 compiles against the Paper 1.21.11 API and declares that minimum `api-version`. It uses current Paper APIs such as Adventure components, the plugin lifecycle and modern block data, so older servers cannot load it.
+
+| Server software and version | Status |
+| --- | --- |
+| Paper 1.21.11 through 26.3 | Supported. Started and smoke-tested on Paper 1.21.11 and 26.3. |
+| Paper 1.21.10 and earlier | Not supported. Use PixelPainter 1.x. |
+| Spigot, CraftBukkit and Folia | Not supported. |
+| Minecraft 1.8 through 1.12 | Not supported; these versions lack the block data the plugin relies on. |
+
+Block materials that do not exist on the running server version are skipped, so the same `palette.yml` works across the supported range.
+
