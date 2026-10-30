@@ -99,4 +99,24 @@ public enum Orientation {
         return new Position(origin.x() + column * rightX + up * upX,
             origin.y() + up * upY, origin.z() + column * rightZ + up * upZ);
     }
+
+    /**
+     * Parses current and legacy names, ignoring case, underscores and hyphens.
+     *
+     * @param name orientation name, optionally prefixed with {@code Up}
+     * @return recognized orientation
+     * @throws IllegalArgumentException if the name is unsupported
+     */
+    public static Orientation parse(String name) {
+        String normalized = name.replace("_", "").replace("-", "").toUpperCase(Locale.ROOT);
+
+        if (normalized.startsWith("UP")) {
+            normalized = normalized.substring(2);
+        }
+
+        String value = normalized;
+
+        return Arrays.stream(values()).filter(o -> o.name().replace("_", "").equals(value)).findFirst()
+            .orElseThrow(() -> new PaintException(PaintError.DIRECTION));
+    }
 }
