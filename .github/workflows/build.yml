@@ -8,3 +8,8 @@ on:
 
 permissions:
   contents: read
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
