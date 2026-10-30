@@ -32,3 +32,6 @@ jobs:
 
       - name: Build
         run: ./gradlew clean build --no-daemon --console=plain
+
+      - name: Validate documentation
+        run: ./gradlew javadocJar --no-daemon --console=plain
