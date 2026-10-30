@@ -1,0 +1,22 @@
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+#                                                                             #
+#                                 PixelPainter                                #
+#                                 by Despical                                 #
+#                                                                             #
+#                   https://docs.despical.dev/pixel-painter                   #
+#                                                                             #
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+# Representative sRGB colors used by the perceptual block matcher.
+# Each key must be a Bukkit material name and each value a quoted '#RRGGBB' color.
+# Missing server materials are skipped for cross-version compatibility. Available
+# entries must be stable solid blocks without gravity or block-entity state.
+# Reloading rejects an empty palette, malformed color or an unsafe available block.
+#
+# Colors approximate a representative texture face. Directional blocks may look
+# different from above or another side; foliage and translucent blocks also depend
+# on biome colors, lighting and the surrounding scene. Leaves are made persistent.
+# Materials can be filtered globally in config.yml or by a named command palette.
+# Add a supported material/color pair here to extend matching without changing code.
+
+blocks:
