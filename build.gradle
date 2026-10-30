@@ -10,7 +10,6 @@ java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(25)
     }
-    withSourcesJar()
 }
 
 repositories {
@@ -49,7 +48,7 @@ tasks.processResources {
 }
 
 tasks.jar {
-    archiveClassifier = 'plain'
+    enabled = false
 }
 
 tasks.shadowJar {
