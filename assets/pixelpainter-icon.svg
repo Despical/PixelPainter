@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128" fill="none">
+<title>Pixel Painter</title>
+<desc>A colorful pixel canvas and mint paintbrush on a dark teal tile.</desc>
+<rect x="2" y="2" width="124" height="124" rx="25" fill="#102F33"/>
+<rect x="2.5" y="2.5" width="123" height="123" rx="24.5" stroke="#8BD5CA" stroke-opacity=".25"/>
+<rect x="22" y="27" width="67" height="67" rx="5" fill="#E7E9DE"/>
+<path fill="#F4BD6A" d="M29 34h17v17H29z"/><path fill="#EF8574" d="M48 34h17v17H48z"/><path fill="#BE8EC8" d="M67 34h15v17H67z"/>
+<path fill="#8BD5CA" d="M29 53h17v17H29z"/><path fill="#6CABA8" d="M48 53h17v17H48z"/><path fill="#83AFE1" d="M67 53h15v17H67z"/>
+<path fill="#69A99A" d="M29 72h17v15H29z"/><path fill="#42958E" d="M48 72h17v15H48z"/><path fill="#4A748C" d="M67 72h15v15H67z"/>
+<path d="m69 86 29-41a6 6 0 0 1 9 8L77 91z" fill="#B7F0D8" stroke="#102F33" stroke-width="4" stroke-linejoin="round"/>
+<path d="m69 85 10 8c-1 12-12 17-24 14 9-4 5-14 14-22Z" fill="#F4BD6A" stroke="#102F33" stroke-width="4" stroke-linejoin="round"/>
+</svg>
