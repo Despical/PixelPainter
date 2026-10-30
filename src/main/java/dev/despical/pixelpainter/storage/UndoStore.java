@@ -200,4 +200,19 @@ public final class UndoStore {
             Files.deleteIfExists(temporary);
         }
     }
+
+    /**
+     * Deletes a journal after restoration completes without conflicts.
+     *
+     * @param id twelve-character hexadecimal journal identifier
+     * @throws IOException if deletion fails
+     * @throws IllegalArgumentException if the identifier is invalid
+     */
+    public void delete(String id) throws IOException {
+        if (!id.matches("[a-f0-9]{12}")) {
+            throw new IllegalArgumentException("Invalid journal ID.");
+        }
+
+        Files.deleteIfExists(folder.resolve(id + ".ppu"));
+    }
 }
