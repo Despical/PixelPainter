@@ -147,4 +147,53 @@ public final class ChatPanels {
                 "id", record.id(), "world", record.world(), "origin", record.bounds().minX() + ", "
                     + record.bounds().minY() + ", " + record.bounds().minZ())));
     }
+
+    /**
+     * Renders a palette's material names with navigation.
+     *
+     * @param sender command audience
+     * @param palette selected family used by navigation commands
+     * @param names supported material names
+     * @param page one-based page
+     */
+    public void materials(CommandSender sender, String palette, List<String> names, int page) {
+        Messages messages = this.messages.get();
+
+        paged(sender, "materials", "/pp materials " + palette + " ", names, page,
+            name -> prefixed(messages.get("commands.materials-row", "material", name)));
+    }
+
+    /**
+     * Shows dimensions, transparency counts and the eight most-used materials.
+     *
+     * @param sender command audience
+     * @param image source name
+     * @param plan prepared estimate; no world preview is created
+     */
+    public void plan(CommandSender sender, String image, PaintPlan plan) {
+        Messages messages = this.messages.get();
+
+        ChatLayout.header(sender, messages, "commands.plan-title");
+        ChatLayout.centered(sender, messages, messages.get("commands.plan-description"), false);
+        messages.reply(sender, Component.empty());
+        messages.reply(sender, prefixed(messages.get("commands.plan-row", "label", messages.get("commands.plan-size"),
+            "value", messages.get("commands.plan-size-value", "width", plan.width(), "height", plan.height()))));
+        messages.reply(sender, prefixed(messages.get("commands.plan-row", "label", messages.get("commands.plan-painted"),
+            "value", plan.painted())));
+        messages.reply(sender, prefixed(messages.get("commands.plan-row", "label", messages.get("commands.plan-skipped"),
+            "value", plan.size() - plan.painted())));
+        messages.reply(sender, Component.empty());
+
+        plan.materials().entrySet().stream().sorted(Map.Entry.<String, Integer>comparingByValue().reversed()
+                .thenComparing(Map.Entry.comparingByKey(Comparator.naturalOrder())))
+            .limit(PAGE_SIZE)
+            .forEach(entry -> messages.reply(sender, prefixed(messages.get("commands.plan-material-row",
+                "material", entry.getKey(), "count", entry.getValue()))));
+
+        if (plan.materials().size() > PAGE_SIZE) {
+            messages.reply(sender, prefixed(messages.get("commands.plan-more", "count", plan.materials().size() - PAGE_SIZE)));
+        }
+
+        messages.reply(sender, Component.empty());
+    }
 }
