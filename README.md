@@ -14,7 +14,7 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-GPLv3-blue.svg" alt="GPLv3 license"></a>
 </p>
 
-<p align="center"><a href="#installation">Installation</a> · <a href="#compatibility">Compatibility</a> · <a href="#commands">Commands</a> · <a href="#configuration-and-upgrading">Configuration</a> · <a href="https://docs.despical.dev/pixel-painter/">Documentation</a> · <a href="https://javadoc.despical.dev/pixel-painter/">Javadocs</a></p>
+<p align="center"><a href="#installation">Installation</a> · <a href="#compatibility">Compatibility</a> · <a href="#commands">Commands</a> · <a href="#configuration-and-upgrading">Configuration</a> · <a href="https://docs.despical.dev/pixel-painter/">Documentation</a> · <a href="https://javadoc.despical.dev/pixel-painter/">Javadocs</a> · <a href="https://hub.despical.dev/plugins/pixel-painter">Plugin Hub</a> · <a href="https://www.spigotmc.org/resources/pixel-painter-1-8-1-21-11.104770/">SpigotMC</a> · <a href="https://builtbybit.com/resources/pixel-painter.50284/">BuiltByBit</a></p>
 
 ---
 
@@ -51,8 +51,8 @@ Block materials that do not exist on the running server version are skipped, so 
 
 ## Installation
 
-1. Build with `./gradlew clean build` or `gradlew.bat clean build`.
-2. Place `build/libs/pixel-painter-2.0.0.jar` in the server's `plugins` directory and restart.
+1. Download the plugin from the [Plugin Hub](https://hub.despical.dev/plugins/pixel-painter), [SpigotMC](https://www.spigotmc.org/resources/pixel-painter-1-8-1-21-11.104770/) or [BuiltByBit](https://builtbybit.com/resources/pixel-painter.50284/), or build it with `./gradlew clean build` or `gradlew.bat clean build`.
+2. Place `pixel-painter-2.0.0.jar` (built to `build/libs/`) in the server's `plugins` directory and restart.
 3. Put PNG, JPEG or WebP files in `plugins/PixelPainter/images`, or use the download command with a trusted host configured in `config.yml`.
 
 All permissions default to operators. Grant individual `pp.*` children to trusted builders as appropriate. World operations run with those administrative permissions; this plugin does not integrate with region protection or survival inventories.
