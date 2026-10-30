@@ -126,4 +126,41 @@ class StorageAndConfigurationTest {
         store.delete(record.id());
         assertTrue(store.load().isEmpty());
     }
+
+    @Test
+    void corruptJournalsFailClosedAndAreNeverSilentlyDiscarded() throws Exception {
+        var store = new UndoStore(temporary);
+        Path corrupt = temporary.resolve("abcdef123456.ppu");
+
+        Files.writeString(corrupt, "truncated journal");
+        assertThrows(IOException.class, store::load);
+        assertTrue(Files.exists(corrupt));
+    }
+
+    @Test
+    void configurationRejectsInvalidBudgetsAndPreservesLegacyAllowlist() throws Exception {
+        Path file = temporary.resolve("config.yml");
+
+        Files.writeString(file, "performance:\n  blocks-per-tick: 0\n");
+        assertThrows(IllegalArgumentException.class, () -> Settings.load(file));
+        Files.writeString(file, "performance:\n  blocks-per-tick: '500'\n");
+        assertThrows(IllegalArgumentException.class, () -> Settings.load(file));
+        Files.writeString(file, "Custom-Materials-Enabled: true\nCustom-Materials: [STONE, NETHERRACK]\n");
+        assertTrue(Settings.load(file).included().contains("STONE"));
+        assertEquals(Files.readString(file), Files.readString(temporary.resolve("config-v1.backup.yml")));
+    }
+
+    @Test
+    void messageFileOverridesDefaultsAndMissingFilesAreNotIgnored() throws Exception {
+        Path file = temporary.resolve("custom-messages.yml");
+
+        Files.writeString(file, "commands.downloaded: 'Custom message for {image}'\n");
+
+        Messages messages = Messages.load(file);
+        String rendered = PlainTextComponentSerializer.plainText().serialize(messages.get("commands.downloaded", "image", "art.png"));
+
+        assertEquals("Custom message for art.png", rendered);
+        assertTrue(messages.has("chat.separator"));
+        assertThrows(Exception.class, () -> Messages.load(temporary.resolve("missing.yml")));
+    }
 }
