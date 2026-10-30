@@ -56,4 +56,60 @@ import java.util.regex.Pattern;
  * Created at 15.10.2026
  */
 public record Messages(Map<String, String> templates) {
+
+    private static final Pattern PLACEHOLDER = Pattern.compile("\\{[a-z][a-z0-9_-]*}");
+    private static final Pattern PLACEHOLDER_NAME = Pattern.compile("[a-z][a-z0-9_-]*");
+
+    /**
+     * Copies templates so caller mutations cannot alter the active messages.
+     */
+    public Messages {
+        templates = Map.copyOf(templates);
+    }
+
+    /**
+     * Merges the configured file with defaults and validates every template.
+     *
+     * @param file message YAML file
+     * @return copied and validated templates
+     * @throws Exception if the file, value types or MiniMessage syntax are invalid
+     */
+    public static Messages load(Path file) throws Exception {
+        var defaults = new YamlConfiguration();
+
+        try (var stream = Objects.requireNonNull(Messages.class.getResourceAsStream("/messages.yml"));
+             var reader = new InputStreamReader(stream, StandardCharsets.UTF_8)
+        ) {
+            defaults.load(reader);
+        }
+
+        var yaml = new YamlConfiguration();
+
+        yaml.load(file.toFile());
+
+        Map<String, String> values = new HashMap<>();
+
+        for (String key : defaults.getKeys(true)) {
+            if (!defaults.isConfigurationSection(key)) {
+                values.put(key, defaults.getString(key));
+            }
+        }
+
+        for (String key : yaml.getKeys(true)) {
+            if (yaml.isConfigurationSection(key)) {
+                continue;
+            }
+
+            if (!yaml.isString(key)) {
+                throw new IllegalArgumentException("Message must be text: " + key);
+            }
+
+            values.put(key, yaml.getString(key));
+        }
+
+        var mini = MiniMessage.builder().strict(true).build();
+
+        values.forEach((_, value) -> mini.deserialize(PLACEHOLDER.matcher(value).replaceAll("x")));
+        return new Messages(values);
+    }
 }
