@@ -496,5 +496,41 @@ public final class PaintService {
                 }
             }
         }
+
+        /**
+         * Compares block data by material so state the game rewrites after placement,
+         * such as snowy or face properties, is still recognized as the painted block.
+         * Blocks that decay on their own, such as mycelium into dirt, also count as a match.
+         */
+        private static boolean matches(String current, String expected) {
+            if (current.equals(expected)) {
+                return true;
+            }
+
+            String material = material(expected);
+
+            return material(current).equals(material) || BlockPalette.DECAYING.getOrDefault(material, Set.of()).contains(material(current));
+        }
+
+        private static String material(String data) {
+            int properties = data.indexOf('[');
+
+            return properties < 0 ? data : data.substring(0, properties);
+        }
+
+        private void progress(int done, int total) {
+            bar.name(plugin.messages().get("progress.bar", "stage", plugin.messages().get("progress.stage-" + stage.key()),
+                "image", image, "percent", total == 0 ? 100 : (int) (100L * done / total)));
+            bar.progress(total == 0 ? 1 : Math.clamp((float) done / total, 0, 1));
+        }
+
+        private void failed(Exception exception) {
+            plugin.getLogger().log(Level.SEVERE, "Undo journal operation failed.", exception);
+            waiting = false;
+
+            if (active == this) {
+                end("commands.operation-failed");
+            }
+        }
     }
 }
