@@ -29,4 +29,36 @@ package dev.despical.pixelpainter.core;
  * Created at 15.10.2026
  */
 public final class PaintException extends IllegalArgumentException {
+
+    private final PaintError error;
+
+    /**
+     * Creates an exception for a typed failure.
+     *
+     * @param error failure kind
+     */
+    public PaintException(PaintError error) {
+        super(error.toString());
+        this.error = error;
+    }
+
+    /**
+     * Creates an exception that keeps the underlying cause.
+     *
+     * @param error failure kind
+     * @param cause original failure
+     */
+    public PaintException(PaintError error, Throwable cause) {
+        super(error.toString(), cause);
+        this.error = error;
+    }
+
+    /**
+     * Returns the failure kind.
+     *
+     * @return typed error
+     */
+    public PaintError error() {
+        return error;
+    }
 }
