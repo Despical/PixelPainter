@@ -17,3 +17,12 @@
 
 ---
 
+## Features
+
+- PNG, JPEG and WebP sources painted as vertical walls or horizontal floor art in eight directions.
+- 305 opaque block materials, Oklab perceptual color matching and optional Floyd-Steinberg dithering.
+- Exact block-height sizing, aspect-ratio preservation and transparent-pixel handling.
+- Tick-limited world edits with private progress, cancellation and bounded image workers.
+- Durable undo journals, original block properties and restart/partial-operation recovery.
+- Configurable MiniMessage panels, material filters and trusted HTTPS source downloads.
+
