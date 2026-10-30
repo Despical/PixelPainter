@@ -89,4 +89,33 @@ public final class TaskExecutor implements AutoCloseable {
             failed.accept(new PaintException(PaintError.QUEUE_FULL, exception));
         }
     }
+
+    private void dispatch(Runnable callback) {
+        if (!plugin.isEnabled()) {
+            return;
+        }
+
+        try {
+            Bukkit.getScheduler().runTask(plugin, callback);
+        } catch (IllegalPluginAccessException ignored) {
+            // Shutdown may finish between the enabled check and scheduling.
+        }
+    }
+
+    /**
+     * Stops submissions and waits for pending work before interrupting workers.
+     */
+    @Override
+    public void close() {
+        workers.shutdown();
+
+        try {
+            if (!workers.awaitTermination(10, TimeUnit.SECONDS)) {
+                workers.shutdownNow();
+            }
+        } catch (InterruptedException exception) {
+            workers.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
+    }
 }
