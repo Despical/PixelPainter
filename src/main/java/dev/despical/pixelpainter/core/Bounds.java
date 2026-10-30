@@ -35,4 +35,36 @@ package dev.despical.pixelpainter.core;
  * Created at 15.10.2026
  */
 public record Bounds(int minX, int minY, int minZ, int maxX, int maxY, int maxZ) {
+
+    /**
+     * Creates normalized inclusive bounds from two opposite corners.
+     *
+     * @param a first corner
+     * @param b opposite corner
+     * @return bounds containing both corners
+     */
+    public static Bounds of(Position a, Position b) {
+        return new Bounds(Math.min(a.x(), b.x()), Math.min(a.y(), b.y()), Math.min(a.z(), b.z()),
+            Math.max(a.x(), b.x()), Math.max(a.y(), b.y()), Math.max(a.z(), b.z()));
+    }
+
+    /**
+     * Checks whether this region shares at least one block with another region.
+     *
+     * @param other region in the same world
+     * @return whether all three inclusive axis spans overlap
+     */
+    public boolean intersects(Bounds other) {
+        return minX <= other.maxX && maxX >= other.minX && minY <= other.maxY && maxY >= other.minY
+            && minZ <= other.maxZ && maxZ >= other.minZ;
+    }
+
+    /**
+     * Counts horizontal chunks touched by the inclusive X/Z span.
+     *
+     * @return chunk count using wide arithmetic
+     */
+    public long chunks() {
+        return ((long) (maxX >> 4) - (minX >> 4) + 1) * ((long) (maxZ >> 4) - (minZ >> 4) + 1);
+    }
 }
