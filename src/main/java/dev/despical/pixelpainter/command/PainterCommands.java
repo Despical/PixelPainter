@@ -444,4 +444,43 @@ public final class PainterCommands extends BaseCommand {
             plugin.refreshImages(_ -> {}, exception -> error(player, exception));
         });
     }
+
+    private void handleReload(CommandSender sender, String[] args) throws Exception {
+        count(args, 0, 0);
+
+        plugin.reloadSettings();
+        plugin.messages().send(sender, "commands.reloaded");
+    }
+
+    private void rejectReload(CommandSender sender, Exception exception) {
+        plugin.getLogger().log(Level.WARNING, "Reload rejected; active configuration retained.", exception);
+        plugin.messages().send(sender, "commands.reload-rejected", "reason", String.valueOf(exception.getMessage()));
+    }
+
+    private void handleCreate(Player player, String[] args) {
+        count(args, 3, 6);
+
+        if (plugin.painter().busy()) {
+            throw new PaintException(PaintError.BUSY);
+        }
+
+        Orientation orientation = Orientation.parse(args[1]);
+        int height = height(args[2]);
+        boolean transparent = args.length <= 3 || bool(args[3]);
+        var palette = plugin.palette().subset(args.length > 4 ? args[4] : "all");
+        boolean dither = args.length > 5 && bool(args[5]);
+        var location = player.getLocation();
+        Position origin = new Position(location.getBlockX(), location.getBlockY(), location.getBlockZ());
+        UUID world = player.getWorld().getUID();
+        var settings = plugin.settings();
+
+        prepare(player, () -> ImagePlanner.plan(plugin.images().read(args[0], settings), height, settings.maxBlocks(),
+            palette, transparent, settings.alphaThreshold(), dither, settings.background()), plan -> {
+                if (!player.hasPermission("pp.create")) {
+                    throw new PaintException(PaintError.PERMISSION);
+                }
+
+                createPainting(player, args[0], plan, orientation, origin, world, settings, false);
+            });
+    }
 }
