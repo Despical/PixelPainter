@@ -107,3 +107,19 @@ The origin is the bottom-left corner; source images are read from top to bottom 
 
 Old spellings such as `North`, `Up_North` and `FlatNorthEast` are accepted.
 
+## Colors and new blocks
+
+The bundled palette contains **305** numeric texture-average colors, including logs, wood/hyphae, stripped wood, ores, glazed terracotta, leaves, stable ice, mushrooms, cherry, bamboo, pale oak, resin, tuff, deepslate and waxed copper families. Glass is never used. Colors were generated from a local Minecraft 1.21.11 client JAR; no Minecraft textures are distributed. Unavailable materials are skipped on an older supported server.
+
+Color matching uses **Oklab** perceptual distance. Optional **Floyd-Steinberg dithering** improves gradients with limited block palettes. Resizing preserves aspect ratio, enforces the configured block budget and retains alpha. Pixels below `images.alpha-threshold` are skipped when transparency is enabled; disabling transparency composites the image over `images.background`.
+
+Extend `palette.yml` with a supported solid, non-gravity Bukkit material without block-entity state and a quoted sRGB hex value:
+
+```yaml
+blocks:
+  PALE_OAK_PLANKS: '#E4DAD8'
+  RESIN_BRICKS: '#CE5818'
+```
+
+Then run `/pp reload`. `palette.include` and `palette.exclude` filter the active palette. An invalid or empty palette rejects the reload, preserving previous settings. Some blocks have different top and side textures; the supplied color is a representative side sample. Leaves are placed with persistent block data to prevent natural decay. Foliage and translucent blocks vary with biome colors, light and background blocks; exclude those materials if you prefer opaque textures. Blocks that change on their own after placement (unwaxed copper, mycelium and nylium) and all glass are ignored even when listed, so paintings keep their colors and can always be restored.
+
