@@ -297,4 +297,22 @@ public final class ImageStore {
             Files.deleteIfExists(temporary);
         }
     }
+
+    private static void validateRemote(URI uri, Settings settings) throws Exception {
+        String host = uri.getHost();
+
+        if (!"https".equalsIgnoreCase(uri.getScheme()) || host == null || uri.getUserInfo() != null
+            || (uri.getPort() != -1 && uri.getPort() != 443)
+            || !settings.downloadHosts().contains(host.toLowerCase(Locale.ROOT))) {
+            throw new PaintException(PaintError.DOWNLOAD_HOST);
+        }
+
+        for (InetAddress address : InetAddress.getAllByName(host)) {
+            if (address.isAnyLocalAddress() || address.isLoopbackAddress() || address.isLinkLocalAddress()
+                || address.isSiteLocalAddress() || address.isMulticastAddress()
+                || (address.getAddress().length == 16 && (address.getAddress()[0] & 0xfe) == 0xfc)) {
+                throw new PaintException(PaintError.DOWNLOAD_HOST);
+            }
+        }
+    }
 }
