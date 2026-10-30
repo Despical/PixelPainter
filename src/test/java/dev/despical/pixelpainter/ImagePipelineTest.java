@@ -78,4 +78,62 @@ class ImagePipelineTest {
         assertEquals(direction, Orientation.parse(direction.name().replace("_", "")));
         assertTrue(bounds.chunks() > 0);
     }
+
+    @Test
+    void northWallReadsImageTopToBottomWithoutMirroring() {
+        assertEquals(new Position(12, 23, 30), Orientation.NORTH.position(new Position(10, 20, 30), 2, 0, 4));
+        assertEquals(new Position(10, 20, 30), Orientation.NORTH.position(new Position(10, 20, 30), 0, 3, 4));
+        assertEquals(Orientation.NORTH, Orientation.parse("Up_North"));
+        assertEquals(4, new Bounds(-17, 0, -17, -16, 0, -16).chunks());
+    }
+
+    @Test
+    void alphaMasksPreserveTerrainAndBackgroundIsExplicit() throws Exception {
+        var image = new BufferedImage(2, 2, BufferedImage.TYPE_INT_ARGB);
+
+        image.setRGB(0, 0, 0xff000000);
+        image.setRGB(1, 0, 0xffffffff);
+        image.setRGB(0, 1, 0x7fffffff);
+        image.setRGB(1, 1, 0x00ffffff);
+        var transparent = ImagePlanner.plan(image, 2, 4, PALETTE, true, 128, false, 0xffffff);
+
+        assertEquals("minecraft:black_concrete", transparent.block(0));
+        assertEquals("minecraft:white_concrete", transparent.block(1));
+        assertNull(transparent.block(2));
+        assertNull(transparent.block(3));
+        assertEquals(2, transparent.painted());
+        var opaque = ImagePlanner.plan(image, 2, 4, PALETTE, false, 128, false, 0xffffff);
+
+        assertEquals(4, opaque.painted());
+        assertEquals("minecraft:white_concrete", opaque.block(3));
+        var zeroThreshold = ImagePlanner.plan(image, 2, 4, PALETTE, true, 0, false, 0xffffff);
+
+        assertNull(zeroThreshold.block(3));
+    }
+
+    @Test
+    void diffusionAddsTonalDetailWithoutLeakingAcrossTransparentHoles() throws Exception {
+        var image = new BufferedImage(32, 32, BufferedImage.TYPE_INT_ARGB);
+
+        for (int y = 0; y < 32; y++) {
+            for (int x = 0; x < 32; x++) {
+                image.setRGB(x, y, x == 16 ? 0 : 0xff808080);
+            }
+        }
+
+        var plan = ImagePlanner.plan(image, 32, 1024, PALETTE, true, 128, true, 0xffffff);
+
+        assertEquals(992, plan.painted());
+        assertEquals(2, plan.materials().size());
+
+        for (int y = 0; y < 32; y++) {
+            assertNull(plan.block(y * 32 + 16));
+        }
+
+        String[] exposed = plan.blocks();
+
+        exposed[0] = "corrupted";
+        assertNotEquals("corrupted", plan.block(0));
+        assertThrows(UnsupportedOperationException.class, () -> plan.materials().clear());
+    }
 }
