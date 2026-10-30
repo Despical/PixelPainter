@@ -112,4 +112,39 @@ public final class PixelPainter extends JavaPlugin {
     private void registerListeners() {
         Bukkit.getPluginManager().registerEvents(new PainterListener(this), this);
     }
+
+    /**
+     * Delegates an all-or-nothing resource reload on the server thread.
+     *
+     * @throws Exception if a resource cannot be loaded or fails validation
+     */
+    public void reloadSettings() throws Exception {
+        configuration.reload();
+    }
+
+    /**
+     * Submits blocking work through the bounded executor.
+     *
+     * @param <T> result type
+     * @param task worker operation without live Bukkit world access
+     * @param completed server-thread success handler
+     * @param failed server-thread failure or queue-rejection handler
+     */
+    public <T> void io(Callable<T> task, Consumer<T> completed, Consumer<Exception> failed) {
+        tasks.submit(task, completed, failed);
+    }
+
+    /**
+     * Refreshes cached source names after a worker finishes scanning the image folder.
+     *
+     * @param completed server-thread callback receiving the refreshed names
+     * @param failed server-thread failure handler
+     */
+    public void refreshImages(Consumer<List<String>> completed, Consumer<Exception> failed) {
+        io(images::list, names -> {
+            imageNames = names;
+
+            completed.accept(names);
+        }, failed);
+    }
 }
