@@ -53,4 +53,32 @@ import java.util.concurrent.TimeUnit;
  * Created at 15.10.2026
  */
 public final class ImageStore {
+
+    private final Path folder;
+
+    /**
+     * Creates the source directory and resolves its real filesystem location.
+     *
+     * @param folder source-image directory
+     * @throws IOException if the directory cannot be created or resolved
+     */
+    public ImageStore(Path folder) throws IOException {
+        Files.createDirectories(folder);
+        this.folder = folder.toRealPath();
+    }
+
+    /**
+     * Validates a flat source name with an optional PNG, JPEG or WebP extension.
+     *
+     * @param input letters, digits, underscores or hyphens with an optional extension
+     * @return unchanged input
+     * @throws IllegalArgumentException if the name violates the filename policy
+     */
+    public static String validName(String input) {
+        if (!input.matches("[a-zA-Z0-9][a-zA-Z0-9_-]{0,63}(?i:\\.(png|jpg|jpeg|webp))?")) {
+            throw new PaintException(PaintError.FILENAME);
+        }
+
+        return input;
+    }
 }
