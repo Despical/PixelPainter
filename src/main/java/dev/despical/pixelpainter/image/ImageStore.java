@@ -194,4 +194,107 @@ public final class ImageStore {
             }
         }
     }
+
+    /**
+     * Deletes a resolved source without changing paintings or undo journals.
+     *
+     * @param name source name
+     * @throws IOException if deletion or resolution fails
+     * @throws IllegalArgumentException if the name is invalid, missing or ambiguous
+     */
+    public void delete(String name) throws IOException {
+        Files.delete(resolve(name));
+    }
+
+    /**
+     * Downloads and validates an image before moving it into the source directory.
+     *
+     * @param name destination name; an absent extension becomes .png
+     * @param link trusted HTTPS source URL
+     * @param settings captured download hosts and limits
+     * @return saved destination filename
+     * @throws Exception if network access, validation, decoding or promotion fails
+     */
+    public String download(String name, String link, Settings settings) throws Exception {
+        validName(name);
+
+        if (!name.contains(".")) {
+            name += ".png";
+        }
+
+        Path target = folder.resolve(name);
+
+        if (list().stream().anyMatch(n -> n.equalsIgnoreCase(target.getFileName().toString()))) {
+            throw new PaintException(PaintError.IMAGE_EXISTS);
+        }
+
+        Path temporary = Files.createTempFile(folder, ".download-", ".tmp");
+
+        try {
+            URI uri = URI.create(link);
+            boolean received = false;
+            long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(30);
+
+            for (int redirects = 0; redirects <= 4; redirects++) {
+                validateRemote(uri, settings);
+                var connection = (HttpURLConnection) uri.toURL().openConnection();
+
+                connection.setInstanceFollowRedirects(false);
+                connection.setConnectTimeout(5000);
+                connection.setReadTimeout(5000);
+                connection.setRequestProperty("User-Agent", "PixelPainter/2.0");
+
+                try {
+                    int status = connection.getResponseCode();
+
+                    if (status >= 300 && status <= 399) {
+                        String location = connection.getHeaderField("Location");
+
+                        if (location == null) {
+                            throw new PaintException(PaintError.DOWNLOAD_FAILED);
+                        }
+
+                        uri = uri.resolve(location);
+                        continue;
+                    }
+
+                    if (status != 200 || connection.getContentLengthLong() > settings.maxFileBytes()) {
+                        throw new PaintException(PaintError.DOWNLOAD_FAILED);
+                    }
+
+                    try (var input = connection.getInputStream(); var output = Files.newOutputStream(temporary)
+                    ) {
+                        byte[] buffer = new byte[8192];
+                        int count, total = 0;
+
+                        while ((count = input.read(buffer)) != -1) {
+                            total += count;
+
+                            if (total > settings.maxFileBytes() || System.nanoTime() > deadline
+                                || Thread.currentThread().isInterrupted()) {
+                                throw new PaintException(PaintError.DOWNLOAD_FAILED);
+                            }
+
+                            output.write(buffer, 0, count);
+                        }
+                    }
+
+                    received = true;
+                    break;
+                } finally {
+                    connection.disconnect();
+                }
+            }
+
+            if (!received) {
+                throw new PaintException(PaintError.DOWNLOAD_FAILED);
+            }
+
+            decode(temporary, settings);
+            Files.move(temporary, target); // Never replace an existing image.
+            return name;
+        } finally {
+            Files.deleteIfExists(temporary);
+        }
+    }
 }
