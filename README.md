@@ -90,3 +90,20 @@ If a painting would cross the world border, the error panel offers a **[Paint an
 
 Palettes: `all`, `concrete`, `wool`, `terracotta`. Optional defaults: `transparent=true`, `palette=all`, `dither=false`. Booleans must be `true` or `false`.
 
+## Directions
+
+The origin is the bottom-left corner; source images are read from top to bottom without vertical inversion. Horizontal directions describe the wall's outward facing normal.
+
+| Direction | Image right | Image up |
+| --- | --- | --- |
+| `north` | East (+X) | Up (+Y) |
+| `south` | West (-X) | Up (+Y) |
+| `east` | South (+Z) | Up (+Y) |
+| `west` | North (-Z) | Up (+Y) |
+| `flat_northeast` | East (+X) | North (-Z) |
+| `flat_southeast` | East (+X) | South (+Z) |
+| `flat_northwest` | West (-X) | North (-Z) |
+| `flat_southwest` | West (-X) | South (+Z) |
+
+Old spellings such as `North`, `Up_North` and `FlatNorthEast` are accepted.
+
