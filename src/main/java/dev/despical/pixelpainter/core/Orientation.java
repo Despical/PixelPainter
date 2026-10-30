@@ -63,4 +63,40 @@ public enum Orientation {
      * Horizontal art extending right eastward and up southward.
      */
     FLAT_SOUTHEAST(1, 0, 0, 0, 1),
+
+    /**
+     * Horizontal art extending right westward and up northward.
+     */
+    FLAT_NORTHWEST(-1, 0, 0, 0, -1),
+
+    /**
+     * Horizontal art extending right westward and up southward.
+     */
+    FLAT_SOUTHWEST(-1, 0, 0, 0, 1);
+
+    private final int rightX, rightZ, upX, upY, upZ;
+
+    Orientation(int rightX, int rightZ, int upX, int upY, int upZ) {
+        this.rightX = rightX;
+        this.rightZ = rightZ;
+        this.upX = upX;
+        this.upY = upY;
+        this.upZ = upZ;
+    }
+
+    /**
+     * Maps a source pixel to a block coordinate relative to the bottom-left origin.
+     *
+     * @param origin bottom-left block
+     * @param column zero-based image column
+     * @param row zero-based image row counted from the top
+     * @param height total image rows
+     * @return mapped coordinate; callers validate indices and world bounds
+     */
+    public Position position(Position origin, int column, int row, int height) {
+        int up = height - 1 - row;
+
+        return new Position(origin.x() + column * rightX + up * upX,
+            origin.y() + up * upY, origin.z() + column * rightZ + up * upZ);
+    }
 }
