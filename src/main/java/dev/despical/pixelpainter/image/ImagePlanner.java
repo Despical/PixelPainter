@@ -44,4 +44,31 @@ import java.util.Map;
  * Created at 15.10.2026
  */
 public final class ImagePlanner {
+
+    private ImagePlanner() {
+    }
+
+    /**
+     * Calculates aspect-preserving width before allocating output buffers.
+     *
+     * @param sourceWidth positive source width
+     * @param sourceHeight positive source height
+     * @param height requested positive output rows
+     * @param maxBlocks permitted output area
+     * @return rounded width, with a minimum of one
+     * @throws IllegalArgumentException if dimensions are invalid or exceed the budget
+     */
+    public static int width(int sourceWidth, int sourceHeight, int height, int maxBlocks) {
+        if (sourceWidth <= 0 || sourceHeight <= 0 || height <= 0) {
+            throw new PaintException(PaintError.SIZE);
+        }
+
+        long width = Math.max(1L, Math.round(sourceWidth * (double) height / sourceHeight));
+
+        if (width > Integer.MAX_VALUE || width * height > maxBlocks) {
+            throw new PaintException(PaintError.SIZE);
+        }
+
+        return (int) width;
+    }
 }
