@@ -176,4 +176,31 @@ public final class PixelPainter extends JavaPlugin {
     public Settings settings() {
         return configuration.settings();
     }
+
+    /**
+     * Returns the current configured message templates.
+     *
+     * @return validated message resources
+     */
+    public Messages messages() {
+        return configuration.messages();
+    }
+
+    /**
+     * Returns the current palette of server-resolved block colors.
+     *
+     * @return validated block palette
+     */
+    public BlockPalette palette() {
+        return configuration.palette();
+    }
+
+    /**
+     * Returns the service responsible for local source files and downloads.
+     *
+     * @return image store after successful initialization
+     */
+    public ImageStore images() {
+        return images;
+    }
 }
