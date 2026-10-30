@@ -91,4 +91,33 @@ public final class BlockPalette {
      * Undo accepts a decayed block as the painted one; new paintings never use them.
      */
     public static final Map<String, Set<String>> DECAYING = decaying();
+
+    private final List<Entry> entries;
+
+    private static Map<String, Set<String>> decaying() {
+        Map<String, Set<String>> map = new HashMap<>();
+
+        map.put("minecraft:mycelium", Set.of("minecraft:dirt"));
+        map.put("minecraft:crimson_nylium", Set.of("minecraft:netherrack"));
+        map.put("minecraft:warped_nylium", Set.of("minecraft:netherrack"));
+
+        String[][] copper = {
+            {"copper_block", "exposed_copper", "weathered_copper", "oxidized_copper"},
+            {"cut_copper", "exposed_cut_copper", "weathered_cut_copper", "oxidized_cut_copper"},
+            {"chiseled_copper", "exposed_chiseled_copper", "weathered_chiseled_copper", "oxidized_chiseled_copper"}};
+
+        for (String[] stages : copper) {
+            for (int i = 0; i < stages.length - 1; i++) {
+                Set<String> later = new HashSet<>();
+
+                for (int j = i + 1; j < stages.length; j++) {
+                    later.add("minecraft:" + stages[j]);
+                }
+
+                map.put("minecraft:" + stages[i], Set.copyOf(later));
+            }
+        }
+
+        return Map.copyOf(map);
+    }
 }
