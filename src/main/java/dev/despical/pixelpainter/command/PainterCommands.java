@@ -116,4 +116,49 @@ public final class PainterCommands extends BaseCommand {
     private final Map<UUID, UUID> pending = new HashMap<>();
     private final Set<UUID> fileOperations = new HashSet<>();
     private final Map<UUID, Runnable> confirmations = new HashMap<>();
+
+    /**
+     * Creates command dispatch and panel renderers for an enabled plugin.
+     *
+     * @param plugin owning plugin
+     */
+    public PainterCommands(PixelPainter plugin) {
+        this.plugin = plugin;
+        panels = new ChatPanels(plugin::messages, plugin.getPluginMeta().getVersion());
+
+        handlers.put("create", (sender, args) -> handleCreate(player(sender), args));
+        handlers.put("preview", (sender, args) -> handlePreview(player(sender), args));
+        handlers.put("undo", this::handleUndo);
+        handlers.put("cancel", this::handleCancel);
+        handlers.put("list", this::handleList);
+        handlers.put("specs", this::handleSpecs);
+        handlers.put("history", (sender, args) -> panels.history(sender, plugin.painter().history(player(sender)), page(args)));
+        handlers.put("materials", this::handleMaterials);
+        handlers.put("download", this::handleDownload);
+        handlers.put("delete", this::handleDelete);
+        handlers.put("reload", this::handleReload);
+        handlers.put("help", (sender, args) -> {
+            page(args);
+            panels.help(sender, ACTIONS);
+        });
+    }
+
+    /**
+     * Registers completions from cached names, directions and accessible history.
+     *
+     * @param manager ACF manager owning these commands
+     */
+    public void registerCompletions(BukkitCommandManager manager) {
+        var completions = manager.getCommandCompletions();
+
+        completions.registerCompletion("images", _ -> plugin.imageNames());
+        completions.registerCompletion("directions", _ -> Arrays.stream(Orientation.values())
+            .map(o -> o.name().toLowerCase(Locale.ROOT)).toList());
+        completions.registerCompletion("heights", _ -> List.of("32", "64", "128", "256"));
+        completions.registerCompletion("none", _ -> List.of());
+        completions.registerCompletion("booleans", _ -> List.of("true", "false"));
+        completions.registerCompletion("palettes", _ -> List.of("all", "concrete", "wool", "terracotta"));
+        completions.registerCompletion("history", context -> context.getSender() instanceof Player player
+            ? plugin.painter().history(player).stream().map(PaintRecord::id).toList() : List.of());
+    }
 }
