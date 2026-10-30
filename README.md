@@ -135,3 +135,17 @@ Undo restores only blocks still matching the painting. Later changes and block e
 
 Cancellation and disconnect stop preparation or world writes. Already placed blocks remain recoverable with `/pp undo <id>`. File downloads and source deletion finish once started; cancelling does not roll back a file operation. Shutdown releases progress bars and chunk tickets; interrupted journals are loaded again at startup. A corrupt journal fails startup with a console error and is retained for maintenance.
 
+## Configuration and upgrading
+
+- `config.yml`: bounded image/world limits, performance budget, undo capacity, alpha/background, material filters, progress display and trusted download hosts.
+- `messages.yml`: all chat content, errors, help descriptions, hover text and progress labels. Dynamic values are inserted as literal text.
+- `palette.yml`: material-to-color mapping.
+
+Reload publishes settings, messages and palette together after validation. Invalid edits keep the active configuration. Jobs and image preparations retain the settings with which they started.
+
+Downloads permit only exact configured HTTPS hosts, validate redirect destinations and reject local addresses, excessive file sizes, oversized source dimensions and unreadable image content. Existing images are never replaced. The default hosts are `i.imgur.com` and `raw.githubusercontent.com`; add your trusted image host explicitly. An empty host list disables downloading.
+
+The v1 `Custom-Materials-Enabled` / `Custom-Materials` allowlist remains readable, and its original config is backed up once as `config-v1.backup.yml`. Existing images remain in place. The old `FULL_MATERIAL_LIST` is replaced by the maintained palette. Old allowlist entries must exist in the new palette; unsupported entries reject startup instead of being silently ignored. New options use defaults when absent. Add `downloads.allowed-hosts` explicitly when retaining a v1 config.
+
+Version 2.0 intentionally ends support for legacy Minecraft and Spigot versions; see [Compatibility](#compatibility). The v1 implementation kept undo only in memory, so its old undo state cannot be migrated. Unlike v1, requested height is no longer doubled internally.
+
