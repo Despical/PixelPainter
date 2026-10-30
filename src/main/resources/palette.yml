@@ -20,3 +20,17 @@
 # Add a supported material/color pair here to extend matching without changing code.
 
 blocks:
+  ACACIA_LEAVES: '#4B6232'
+  ACACIA_LOG: '#676157'
+  ACACIA_PLANKS: '#A85A32'
+  ACACIA_WOOD: '#676157'
+  AMETHYST_BLOCK: '#8662BF'
+  ANCIENT_DEBRIS: '#604038'
+  ANDESITE: '#888889'
+  AZALEA_LEAVES: '#5A732C'
+  BAMBOO_BLOCK: '#7F903A'
+  BAMBOO_MOSAIC: '#BEAA4E'
+  BAMBOO_PLANKS: '#C1AD50'
+  BASALT: '#49494E'
+  BEDROCK: '#555555'
+  BIRCH_LEAVES: '#42542B'
