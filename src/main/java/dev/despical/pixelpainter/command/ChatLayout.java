@@ -152,4 +152,31 @@ public final class ChatLayout {
 
         return width;
     }
+
+    /**
+     * Wraps text at word boundaries for hover descriptions.
+     *
+     * @param text text to wrap
+     * @param columns maximum characters per line
+     * @return text with line breaks
+     */
+    public static String wrap(String text, int columns) {
+        StringBuilder result = new StringBuilder();
+        int line = 0;
+
+        for (String word : text.split("\\s+")) {
+            if (line > 0 && line + word.length() + 1 > columns) {
+                result.append('\n');
+                line = 0;
+            } else if (line > 0) {
+                result.append(' ');
+                line++;
+            }
+
+            result.append(word);
+            line += word.length();
+        }
+
+        return result.toString();
+    }
 }
