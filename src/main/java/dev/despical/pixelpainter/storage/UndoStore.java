@@ -54,4 +54,49 @@ import java.util.UUID;
  * Created at 15.10.2026
  */
 public final class UndoStore {
+
+    private static final int MAGIC = 0x50505532;
+    private final Path folder;
+
+    /**
+     * Creates and resolves the journal directory.
+     *
+     * @param folder persistent undo directory
+     * @throws IOException if the directory cannot be created or resolved
+     */
+    public UndoStore(Path folder) throws IOException {
+        Files.createDirectories(folder);
+        this.folder = folder.toRealPath();
+    }
+
+    /**
+     * Loads complete journals while ignoring unfinished temporary files.
+     *
+     * @return copied list of decoded journals
+     * @throws IOException if a journal is malformed, unreadable or exceeds recovery limits
+     */
+    public List<PaintRecord> load() throws IOException {
+        List<PaintRecord> records = new ArrayList<>();
+        int total = 0;
+
+        try (var paths = Files.list(folder)
+        ) {
+            for (Path path : paths.filter(p -> p.toString().endsWith(".ppu")).sorted().toList()) {
+                if (!Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS)) {
+                    throw new IOException("Undo journal must be a regular file: " + path.getFileName());
+                }
+
+                PaintRecord record = read(path);
+                total += record.changes().size();
+
+                if (records.size() >= 256 || total > 4194304) {
+                    throw new IOException("Undo journal hard limit exceeded. Preserve journals before maintenance.");
+                }
+
+                records.add(record);
+            }
+        }
+
+        return List.copyOf(records);
+    }
 }
