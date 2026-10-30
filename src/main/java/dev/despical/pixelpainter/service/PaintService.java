@@ -288,4 +288,34 @@ public final class PaintService {
 
         active = null;
     }
+
+    /**
+     * Cancels the ticker and releases active chunk tickets and the progress bar.
+     */
+    public void close() {
+        ticker.cancel();
+        end(null);
+    }
+
+    /**
+     * Lists the phases of a world job in execution order.
+     */
+    private enum Stage {
+
+        CHUNKS, SCAN, SAVE, BUILD, UNDO;
+
+        private String key() {
+            return name().toLowerCase(java.util.Locale.ROOT);
+        }
+    }
+
+    /**
+     * Carries the state machine for chunk loading, capture and bounded block writes.
+     * <p>
+     * A waiting journal callback retains the service slot. A durable journal is
+     * published even when cancellation wins the write race. Block-data objects are
+     * cached only inside this server-thread job.
+     */
+    private final class Job {
+    }
 }
