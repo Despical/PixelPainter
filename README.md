@@ -53,3 +53,15 @@ Block materials that do not exist on the running server version are skipped, so 
 
 All permissions default to operators. Grant individual `pp.*` children to trusted builders as appropriate. World operations run with those administrative permissions; this plugin does not integrate with region protection or survival inventories.
 
+## Quick start
+
+```text
+/pp list
+/pp preview portrait.png 64 all true true
+/pp create portrait.png north 64 true all true
+/pp history
+/pp undo
+```
+
+Stand at the desired **bottom-left block** of your image. Height is the exact number of block rows; width is calculated from the original aspect ratio. The example creates a 64-block-high wall, preserves transparent pixels, uses the complete palette and enables dithering. The estimate uses the same settings but never changes the world.
+
