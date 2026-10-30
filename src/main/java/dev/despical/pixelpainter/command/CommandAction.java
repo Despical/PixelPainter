@@ -33,4 +33,28 @@ import java.util.Locale;
  * Created at 15.10.2026
  */
 public record CommandAction(String name, String permission, String syntax, String suggestion, Group group) {
+
+    /**
+     * Help sections, declared in presentation order.
+     */
+    public enum Group {
+
+        /** Commands that create, estimate or revert paintings. */
+        PAINT,
+        /** Commands that browse source images and history. */
+        IMAGES,
+        /** Commands that change files or configuration. */
+        MANAGE,
+        /** Reference commands such as help. */
+        REFERENCE;
+
+        /**
+         * Returns the suffix of the section's heading message.
+         *
+         * @return lowercase key
+         */
+        public String key() {
+            return name().toLowerCase(Locale.ROOT);
+        }
+    }
 }
