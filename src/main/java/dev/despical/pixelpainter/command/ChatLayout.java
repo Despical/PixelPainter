@@ -70,4 +70,49 @@ public final class ChatLayout {
 
         centered(sender, messages, messages.get(title, replacements), true);
     }
+
+    /**
+     * Sends a component centered for players, or unchanged for the console.
+     *
+     * @param sender command audience
+     * @param messages active messages
+     * @param component content to center
+     * @param bold whether the content is rendered bold
+     */
+    public static void centered(CommandSender sender, Messages messages, Component component, boolean bold) {
+        if (!(sender instanceof Player)) {
+            messages.reply(sender, component);
+
+            return;
+        }
+
+        messages.reply(sender, Component.text(" ".repeat(Math.max(0, (CHAT_WIDTH - pixelWidth(component, bold)) / SPACE_WIDTH)))
+            .append(component));
+    }
+
+    /**
+     * Sends centered previous and next buttons when more than one page exists.
+     *
+     * @param sender command audience
+     * @param messages active messages
+     * @param command command prefix, followed by the page number
+     * @param page current one-based page
+     * @param pages page count
+     */
+    public static void navigation(CommandSender sender, Messages messages, String command, int page, int pages) {
+        messages.reply(sender, Component.empty());
+
+        if (pages <= 1) {
+            return;
+        }
+
+        Component previous = page > 1 ? button(messages, "previous", command + (page - 1))
+            : messages.get("chat.button-previous").color(DISABLED);
+        Component next = page < pages ? button(messages, "next", command + (page + 1))
+            : messages.get("chat.button-next").color(DISABLED);
+
+        centered(sender, messages, messages.get("chat.page-navigation", "previous", previous, "next", next,
+            "page", page, "pages", pages), false);
+        messages.reply(sender, Component.empty());
+    }
 }
