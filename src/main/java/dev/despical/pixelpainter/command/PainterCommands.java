@@ -520,4 +520,41 @@ public final class PainterCommands extends BaseCommand {
         prepare(player, () -> ImagePlanner.plan(plugin.images().read(args[0], settings), height, settings.maxBlocks(),
             palette, transparent, settings.alphaThreshold(), dither, settings.background()), plan -> panels.plan(player, args[0], plan));
     }
+
+    private int height(String text) {
+        int value = positive(text);
+
+        if (value > plugin.settings().maxHeight()) {
+            throw new PaintException(PaintError.SIZE);
+        }
+
+        return value;
+    }
+
+    private <T> void prepare(Player player, Callable<T> task, Consumer<T> completed) {
+        UUID owner = player.getUniqueId(), token = UUID.randomUUID();
+
+        if (pending.putIfAbsent(owner, token) != null) {
+            throw new PaintException(PaintError.PREPARING);
+        }
+
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            if (token.equals(pending.get(owner)) && player.isOnline()) {
+                plugin.messages().actionBar(player, "commands.preparing");
+            }
+        }, PREPARING_DELAY_TICKS);
+        plugin.io(task, result -> {
+            fileOperations.remove(owner);
+
+            if (pending.remove(owner, token) && player.isOnline()) {
+                guarded(player, () -> completed.accept(result));
+            }
+        }, exception -> {
+            fileOperations.remove(owner);
+
+            if (pending.remove(owner, token) && player.isOnline()) {
+                error(player, exception);
+            }
+        });
+    }
 }
