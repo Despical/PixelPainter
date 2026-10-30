@@ -161,4 +161,61 @@ public final class PainterCommands extends BaseCommand {
         completions.registerCompletion("history", context -> context.getSender() instanceof Player player
             ? plugin.painter().history(player).stream().map(PaintRecord::id).toList() : List.of());
     }
+
+    /**
+     * Opens help for empty input and renders the unknown-command panel otherwise.
+     *
+     * @param sender command audience
+     * @param args arguments after the root command
+     */
+    @Default
+    @CatchUnknown
+    public void root(CommandSender sender, String[] args) {
+        if (args.length == 0) {
+            execute(sender, "help", args);
+        } else {
+            plugin.messages().send(sender, PaintError.UNKNOWN_COMMAND.key());
+        }
+    }
+
+    /**
+     * Routes creation requests through common validation and permissions.
+     *
+     * @param sender command audience
+     * @param args positional arguments after the subcommand
+     */
+    @Subcommand("create")
+    @CommandCompletion("@images @directions @heights @booleans @palettes @booleans @none")
+    public void create(CommandSender sender, String[] args) {
+        execute(sender, "create", args);
+    }
+
+    /**
+     * Runs the world-border override offered after a create request crossed the border.
+     *
+     * @param sender command audience
+     */
+    @Subcommand("confirm")
+    @Private
+    public void confirm(CommandSender sender) {
+        try {
+            Player player = player(sender);
+
+            if (!player.hasPermission("pp.create")) {
+                throw new PaintException(PaintError.PERMISSION);
+            }
+
+            Runnable confirmation = confirmations.remove(player.getUniqueId());
+
+            if (confirmation == null) {
+                plugin.messages().send(player, "commands.confirm-expired");
+
+                return;
+            }
+
+            confirmation.run();
+        } catch (Exception exception) {
+            error(sender, exception);
+        }
+    }
 }
