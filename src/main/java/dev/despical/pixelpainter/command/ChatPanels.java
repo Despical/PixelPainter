@@ -196,4 +196,38 @@ public final class ChatPanels {
 
         messages.reply(sender, Component.empty());
     }
+
+    private Component prefixed(Component content) {
+        return messages.get().get("chat.table-row-prefix").append(content);
+    }
+
+    private Component row(Component content, ClickEvent click, Component hover) {
+        return prefixed(content).clickEvent(click).hoverEvent(HoverEvent.showText(hover));
+    }
+
+    private <T> void paged(CommandSender sender, String key, String command, List<T> entries, int page,
+        Function<T, Component> render) {
+
+        Messages messages = this.messages.get();
+        int pages = Math.max(1, (entries.size() + PAGE_SIZE - 1) / PAGE_SIZE);
+
+        if (page < 1 || page > pages) {
+            messages.send(sender, PaintError.PAGE.key(), "pages", pages);
+
+            return;
+        }
+
+        ChatLayout.header(sender, messages, "commands." + key + "-title");
+        ChatLayout.centered(sender, messages, messages.get("commands." + key + "-description"), false);
+        messages.reply(sender, Component.empty());
+
+        if (entries.isEmpty()) {
+            messages.reply(sender, messages.get("commands.empty"));
+        }
+
+        entries.stream().skip((long) (page - 1) * PAGE_SIZE).limit(PAGE_SIZE)
+            .forEach(entry -> messages.reply(sender, render.apply(entry)));
+
+        ChatLayout.navigation(sender, messages, command, page, pages);
+    }
 }
