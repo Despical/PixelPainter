@@ -48,4 +48,24 @@ import java.util.UUID;
  */
 public record PaintRecord(String id, UUID owner, UUID world, String image, long created, Bounds bounds,
     List<Change> changes) {
+
+    /**
+     * Copies the change list to isolate the journal payload from caller mutations.
+     */
+    public PaintRecord {
+        changes = List.copyOf(changes);
+    }
+
+    /**
+     * Records one original and intended block state at a world-relative coordinate.
+     *
+     * @param position block coordinate
+     * @param before canonical original block data
+     * @param after canonical painting block data
+     * @author Despical
+     * <p>
+     * Created at 15.10.2026
+     */
+    public record Change(Position position, String before, String after) {
+    }
 }
