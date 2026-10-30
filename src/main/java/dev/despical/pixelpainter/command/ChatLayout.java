@@ -43,4 +43,31 @@ import org.bukkit.map.MinecraftFont;
  * Created at 15.10.2026
  */
 public final class ChatLayout {
+
+    private static final String ASCII_ADVANCES =
+        "42466662444626266666666666225656766666666466666666666666666464663666665662653666666646666664247";
+    private static final int CHAT_WIDTH = 320;
+    private static final int SPACE_WIDTH = 8;
+    private static final TextColor DISABLED = TextColor.color(0x586174);
+    private static final TextColor ENABLED = TextColor.color(0x7ABFCC);
+
+    private ChatLayout() {
+    }
+
+    /**
+     * Sends the separator, an empty line and the centered bold title to players.
+     *
+     * @param sender command audience
+     * @param messages active messages
+     * @param title title message key
+     * @param replacements alternating placeholder names and values
+     */
+    public static void header(CommandSender sender, Messages messages, String title, Object... replacements) {
+        if (sender instanceof Player) {
+            centered(sender, messages, messages.get("chat.separator"), false);
+            messages.reply(sender, Component.empty());
+        }
+
+        centered(sender, messages, messages.get(title, replacements), true);
+    }
 }
