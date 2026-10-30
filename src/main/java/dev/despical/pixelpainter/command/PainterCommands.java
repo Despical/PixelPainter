@@ -290,4 +290,40 @@ public final class PainterCommands extends BaseCommand {
     public void materials(CommandSender sender, String[] args) {
         execute(sender, "materials", args);
     }
+
+    /**
+     * Routes source-dimension requests and their information alias.
+     *
+     * @param sender command audience
+     * @param args positional arguments after the subcommand
+     */
+    @Subcommand("specs|info")
+    @CommandCompletion("@images @none")
+    public void specs(CommandSender sender, String[] args) {
+        execute(sender, "specs", args);
+    }
+
+    /**
+     * Routes bounded source-image downloads.
+     *
+     * @param sender command audience
+     * @param args positional arguments after the subcommand
+     */
+    @Subcommand("download")
+    @CommandCompletion("@none")
+    public void download(CommandSender sender, String[] args) {
+        execute(sender, "download", args);
+    }
+
+    /**
+     * Routes source deletion without deleting paintings or journals.
+     *
+     * @param sender command audience
+     * @param args positional arguments after the subcommand
+     */
+    @Subcommand("delete")
+    @CommandCompletion("@images @none")
+    public void delete(CommandSender sender, String[] args) {
+        execute(sender, "delete", args);
+    }
 }
