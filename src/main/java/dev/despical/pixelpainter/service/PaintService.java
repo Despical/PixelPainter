@@ -97,4 +97,76 @@ public final class PaintService {
     public boolean busy() {
         return active != null;
     }
+
+    /**
+     * Checks whether the active job holds resources in a world.
+     *
+     * @param world queried world UUID
+     * @return whether that world is in use
+     */
+    public boolean usesWorld(UUID world) {
+        return active != null && active.world.getUID().equals(world);
+    }
+
+    /**
+     * Lists journals accessible to a player in newest-first order.
+     *
+     * @param player owner or administrator with pp.admin
+     * @return copied list of accessible records
+     */
+    public List<PaintRecord> history(Player player) {
+        return history.values().stream().filter(r -> r.owner().equals(player.getUniqueId()) || player.hasPermission("pp.admin"))
+            .sorted(Comparator.comparingLong(PaintRecord::created).reversed()).toList();
+    }
+
+    /**
+     * Validates and queues a prepared image for incremental capture and painting.
+     *
+     * @param player requesting player; command layer checks creation permission
+     * @param image source name
+     * @param plan prepared pixel materials
+     * @param orientation image-to-world mapping
+     * @param origin bottom-left image block
+     * @param worldId world captured when preparation started
+     * @param settings captured request limits
+     * @param ignoreBorder whether a painting may extend past the world border
+     * @throws PaintException if world, bounds, capacity or overlap checks fail
+     */
+    public void create(Player player, String image, PaintPlan plan, Orientation orientation, Position origin, UUID worldId,
+        Settings settings, boolean ignoreBorder) {
+        requireIdle();
+
+        if (history.size() >= settings.maxHistory()) {
+            throw new PaintException(PaintError.HISTORY_FULL);
+        }
+
+        World world = Bukkit.getWorld(worldId);
+
+        if (world == null || !player.getWorld().getUID().equals(worldId)) {
+            throw new PaintException(PaintError.WORLD);
+        }
+
+        Bounds bounds = Bounds.of(origin, orientation.position(origin, plan.width() - 1, 0, plan.height()));
+
+        validate(world, bounds, settings, ignoreBorder);
+
+        for (PaintRecord record : history.values()) {
+            if (record.world().equals(worldId) && record.bounds().intersects(bounds)) {
+                throw new PaintException(PaintError.OVERLAP);
+            }
+        }
+
+        int stored = history.values().stream().mapToInt(r -> r.changes().size()).sum();
+
+        if ((long) stored + plan.painted() > settings.maxStoredBlocks()) {
+            throw new PaintException(PaintError.HISTORY_FULL);
+        }
+
+        String id;
+        do {
+            id = UUID.randomUUID().toString().replace("-", "").substring(0, 12);
+        } while (history.containsKey(id));
+        active = new Job(player, world, bounds, settings, id, image, plan, orientation, origin, null);
+        plugin.messages().send(player, "commands.queued", "image", image, "id", id);
+    }
 }
