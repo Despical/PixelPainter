@@ -17,3 +17,20 @@
 # panel renderer. Keep required placeholders when you edit a message.
 # A key with a "-title" companion is shown to players as a centered panel;
 # the console receives the same text without formatting.
+
+# Shared chat layout
+chat.separator: '<#394555><strikethrough>                                                                        </strikethrough></#394555>'
+chat.table-row-prefix: '  <#606A7B>•</#606A7B> '
+chat.button-previous: '[Previous]'
+chat.button-next: '[Next]'
+chat.hover-previous: '<#7ABFCC>Click to open the previous page.</#7ABFCC>'
+chat.hover-next: '<#7ABFCC>Click to open the next page.</#7ABFCC>'
+chat.page-navigation: '{previous}  <#A8B8C9>{page} / {pages}</#A8B8C9>  {next}'
+chat.help-button: '<#7ABFCC>[Command help]</#7ABFCC>'
+chat.help-hover: '<#7ABFCC>Click to fill in /pp help.</#7ABFCC>'
+chat.error-help-button: '<#A96B66>[</#A96B66><#E39A90>Command help</#E39A90><#A96B66>]</#A96B66>'
+chat.error-help-hover: '<#C8847E>Click to fill in <#F2B2A8>/pp help</#F2B2A8>.</#C8847E>'
+chat.confirm-button: '<#7ABFCC>[Paint anyway]</#7ABFCC>'
+chat.confirm-hover: '<#7ABFCC>Click to paint past the world border.</#7ABFCC>'
+chat.undo-button: '<#7ABFCC>[Undo]</#7ABFCC>'
+chat.undo-hover: '<#7ABFCC>Click to fill in /pp undo {id}.</#7ABFCC>'
