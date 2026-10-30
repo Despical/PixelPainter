@@ -35,3 +35,10 @@ jobs:
 
       - name: Validate documentation
         run: ./gradlew javadocJar --no-daemon --console=plain
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: pixel-painter
+          path: build/libs/*.jar
+          if-no-files-found: error
