@@ -149,3 +149,21 @@ The v1 `Custom-Materials-Enabled` / `Custom-Materials` allowlist remains readabl
 
 Version 2.0 intentionally ends support for legacy Minecraft and Spigot versions; see [Compatibility](#compatibility). The v1 implementation kept undo only in memory, so its old undo state cannot be migrated. Unlike v1, requested height is no longer doubled internally.
 
+## Development
+
+```text
+./gradlew clean build
+./gradlew javadocJar
+```
+
+JUnit covers image budgets, transparency, dithering, all eight orientations, filename validation, input image limits, trusted downloads, persistent journal recovery and configuration/message validation. CI builds with Java 25, validates Javadocs with warnings treated as errors and uploads the plugin JAR.
+
+Javadoc covers the lifecycle, commands, configuration, geometry, image pipeline, world operations and journal storage. Each production package includes a `package-info.java` overview. Generate the HTML entry point at `build/docs/javadoc/index.html` and the distributable `build/libs/pixel-painter-2.0.0-javadoc.jar` with `javadocJar`.
+
+Repository policies and collaboration resources:
+
+- [Contribution guide](CONTRIBUTING.md) and [code of conduct](CODE_OF_CONDUCT.md).
+- [Private security reporting](SECURITY.md).
+- GitHub bug and feature forms, a pull request checklist, Gradle/Actions dependency updates and Java 25 build/Javadoc checks in `.github`.
+
+Licensed under the GNU General Public License, version 3 or later. See [LICENSE](LICENSE).
