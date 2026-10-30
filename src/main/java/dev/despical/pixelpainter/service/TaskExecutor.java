@@ -32,13 +32,13 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 /**
- * Runs bounded image and file work and returns results to the server thread.
+ * Runs bounded image and file work and returns results to the global region thread.
  * <p>
  * Two workers share a queue with eight waiting tasks. Saturation reports a
  * configured queue-full failure instead of allocating an unbounded backlog.
  * Worker tasks must not access live Bukkit worlds or send player messages.
  * <p>
- * Success and failure callbacks are scheduled on the server thread while the
+ * Success and failure callbacks are scheduled on the global region thread while the
  * plugin is enabled. Shutdown stops accepting work and gives pending file
  * operations up to ten seconds to finish. A completed journal remains usable
  * on disk even when shutdown prevents delivery of its callback.
@@ -55,7 +55,7 @@ public final class TaskExecutor implements AutoCloseable {
     /**
      * Creates the bounded executor without starting any work.
      *
-     * @param plugin owner used to schedule server-thread callbacks
+     * @param plugin owner used to schedule callbacks
      */
     public TaskExecutor(JavaPlugin plugin) {
         this.plugin = plugin;
@@ -67,12 +67,12 @@ public final class TaskExecutor implements AutoCloseable {
     }
 
     /**
-     * Submits a task from the server thread and delivers its result there.
+     * Submits a task and delivers its result on the global region thread.
      *
      * @param <T> result type
      * @param task blocking work without live world access
-     * @param completed server-thread success callback
-     * @param failed server-thread error callback; rejection is delivered immediately
+     * @param completed global-region success callback
+     * @param failed global-region error callback; rejection is delivered immediately
      */
     public <T> void submit(Callable<T> task, Consumer<T> completed, Consumer<Exception> failed) {
         try {
@@ -96,7 +96,7 @@ public final class TaskExecutor implements AutoCloseable {
         }
 
         try {
-            Bukkit.getScheduler().runTask(plugin, callback);
+            Bukkit.getGlobalRegionScheduler().execute(plugin, callback);
         } catch (IllegalPluginAccessException ignored) {
             // Shutdown may finish between the enabled check and scheduling.
         }
