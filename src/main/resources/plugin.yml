@@ -1,18 +1,60 @@
 name: PixelPainter
-author: Despical
 version: ${version}
-api-version: 1.13
-description: Turn your images into Minecraft blocks.
-main: dev.despical.pixelpainter.PixelPainterPlugin
-
+main: dev.despical.pixelpainter.PixelPainter
+api-version: 1.21.11
+author: Despical
+description: Turn images into block art with perceptual color matching and persistent undo.
+website: https://docs.despical.dev/pixel-painter
 permissions:
   pp.*:
+    description: Grants all PixelPainter commands and administrative access.
     default: op
     children:
-      pp.create: true
-      pp.delete: true
-      pp.undo: true
-      pp.list: true
       pp.help: true
-      pp.download: true
+      pp.create: true
       pp.howmanyblocks: true
+      pp.undo: true
+      pp.cancel: true
+      pp.list: true
+      pp.specs: true
+      pp.materials: true
+      pp.download: true
+      pp.delete: true
+      pp.reload: true
+      pp.admin: true
+  pp.help:
+    description: Browse available commands and their usage.
+    default: op
+  pp.create:
+    description: Create block paintings from local source images.
+    default: op
+  pp.howmanyblocks:
+    description: Estimate output dimensions, transparency and material counts.
+    default: op
+  pp.undo:
+    description: Browse and restore accessible painting recovery journals.
+    default: op
+  pp.cancel:
+    description: Cancel your image preparation or active world operation.
+    default: op
+  pp.list:
+    description: Browse available source image files.
+    default: op
+  pp.specs:
+    description: Inspect the original dimensions of a source image.
+    default: op
+  pp.materials:
+    description: Browse supported block colors and palette families.
+    default: op
+  pp.download:
+    description: Download images from configured trusted HTTPS hosts.
+    default: op
+  pp.delete:
+    description: Delete source image files without removing paintings or journals.
+    default: op
+  pp.reload:
+    description: Reload settings, message templates and block colors.
+    default: op
+  pp.admin:
+    description: View and undo other players' journals and cancel their world operations.
+    default: op
