@@ -33,4 +33,34 @@ import java.util.Locale;
  * Created at 15.10.2026
  */
 public enum Orientation {
+
+    /**
+     * North-facing wall, with image right pointing east.
+     */
+    NORTH(1, 0, 0, 1, 0),
+
+    /**
+     * South-facing wall, with image right pointing west.
+     */
+    SOUTH(-1, 0, 0, 1, 0),
+
+    /**
+     * East-facing wall, with image right pointing south.
+     */
+    EAST(0, 1, 0, 1, 0),
+
+    /**
+     * West-facing wall, with image right pointing north.
+     */
+    WEST(0, -1, 0, 1, 0),
+
+    /**
+     * Horizontal art extending right eastward and up northward.
+     */
+    FLAT_NORTHEAST(1, 0, 0, 0, -1),
+
+    /**
+     * Horizontal art extending right eastward and up southward.
+     */
+    FLAT_SOUTHEAST(1, 0, 0, 0, 1),
 }
