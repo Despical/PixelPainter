@@ -42,4 +42,32 @@ import java.util.Map;
  * Created at 15.10.2026
  */
 public record PaintPlan(int width, int height, String[] blocks, Map<String, Integer> materials) {
+
+    /**
+     * Copies the output pixels and material counts before publication.
+     */
+    public PaintPlan {
+        blocks = blocks.clone();
+        materials = Collections.unmodifiableMap(new LinkedHashMap<>(materials));
+    }
+
+    /**
+     * Returns a defensive copy of the row-major pixel array.
+     *
+     * @return copied block-data strings, including null transparent entries
+     */
+    @Override
+    public String[] blocks() {
+        return blocks.clone();
+    }
+
+    /**
+     * Reads one selected block without copying the complete pixel array.
+     *
+     * @param index row-major pixel index
+     * @return canonical block data, or null to preserve terrain
+     */
+    public String block(int index) {
+        return blocks[index];
+    }
 }
