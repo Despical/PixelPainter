@@ -410,4 +410,38 @@ public final class PainterCommands extends BaseCommand {
         panels.materials(sender, palette, plugin.palette().subset(palette).entries().stream()
             .map(BlockPalette.Entry::material).toList(), args.length > 1 ? positive(args[1]) : 1);
     }
+
+    private void handleSpecs(CommandSender sender, String[] args) {
+        count(args, 1, 1);
+        Player player = player(sender);
+        var settings = plugin.settings();
+
+        prepare(player, () -> plugin.images().read(args[0], settings), image -> plugin.messages().send(player,
+            "commands.specs", "image", args[0], "width", image.getWidth(), "height", image.getHeight()));
+    }
+
+    private void handleDownload(CommandSender sender, String[] args) {
+        count(args, 2, 2);
+        Player player = player(sender);
+        var settings = plugin.settings();
+
+        prepareFile(player, () -> plugin.images().download(args[0], args[1], settings), name -> {
+            plugin.messages().send(player, "commands.downloaded", "image", name);
+            plugin.refreshImages(_ -> {}, exception -> error(player, exception));
+        });
+    }
+
+    private void handleDelete(CommandSender sender, String[] args) {
+        count(args, 1, 1);
+        Player player = player(sender);
+
+        prepareFile(player, () -> {
+            plugin.images().delete(args[0]);
+
+            return args[0];
+        }, name -> {
+            plugin.messages().send(player, "commands.deleted", "image", name);
+            plugin.refreshImages(_ -> {}, exception -> error(player, exception));
+        });
+    }
 }
