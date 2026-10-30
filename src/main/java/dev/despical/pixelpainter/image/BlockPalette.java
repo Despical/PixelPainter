@@ -120,4 +120,86 @@ public final class BlockPalette {
 
         return Map.copyOf(map);
     }
+
+    /**
+     * Copies a non-empty list of prepared palette entries.
+     *
+     * @param entries matching candidates
+     * @throws IllegalArgumentException if no candidates are available
+     */
+    public BlockPalette(List<Entry> entries) {
+        if (entries.isEmpty()) {
+            throw new IllegalArgumentException("Palette has no supported blocks.");
+        }
+
+        this.entries = List.copyOf(entries);
+    }
+
+    /**
+     * Loads and filters material colors using the current server material registry.
+     *
+     * @param file palette YAML file
+     * @param included exact allowlist; empty means all available entries
+     * @param excluded exact material denylist
+     * @return non-empty validated palette
+     * @throws Exception if loading or palette validation fails
+     */
+    public static BlockPalette load(Path file, Set<String> included, Set<String> excluded) throws Exception {
+        var yaml = new YamlConfiguration();
+
+        yaml.load(file.toFile());
+        var section = yaml.getConfigurationSection("blocks");
+
+        if (section == null) {
+            throw new IllegalArgumentException("palette.yml requires a blocks section.");
+        }
+
+        List<Entry> entries = new ArrayList<>();
+
+        for (String key : section.getKeys(false)) {
+            Material material = Material.matchMaterial(key);
+
+            if (material == null) {
+                continue; // A newer palette can be shared with older supported servers.
+            }
+
+            if (DECAYING.containsKey(material.getKey().toString()) || isGlass(material)) {
+                continue; // Decays on random ticks or is glass; neither is used for paintings.
+            }
+
+            if (!material.isBlock() || !material.isSolid() || material.hasGravity()) {
+                throw new IllegalArgumentException("Unsafe palette block: " + key);
+            }
+
+            BlockData data = Bukkit.createBlockData(material);
+
+            if (!supports(material, data) || data.createBlockState() instanceof TileState) {
+                throw new IllegalArgumentException("Unsafe palette block: " + key);
+            }
+
+            if (data instanceof Leaves leaves) {
+                leaves.setPersistent(true);
+            }
+
+            String hex = section.getString(key);
+
+            if (hex == null || !hex.matches("#[0-9a-fA-F]{6}")) {
+                throw new IllegalArgumentException("Expected #RRGGBB for " + key);
+            }
+
+            if ((!included.isEmpty() && !included.contains(key)) || excluded.contains(key)) {
+                continue;
+            }
+
+            entries.add(new Entry(key, data.getAsString(), Integer.parseInt(hex.substring(1), 16)));
+        }
+
+        Set<String> supported = entries.stream().map(Entry::material).collect(Collectors.toSet());
+
+        if (!supported.containsAll(included)) {
+            throw new IllegalArgumentException("Included materials must be available in the active palette: " + included);
+        }
+
+        return new BlockPalette(entries);
+    }
 }
