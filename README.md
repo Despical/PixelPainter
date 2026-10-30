@@ -65,3 +65,28 @@ All permissions default to operators. Grant individual `pp.*` children to truste
 
 Stand at the desired **bottom-left block** of your image. Height is the exact number of block rows; width is calculated from the original aspect ratio. The example creates a 64-block-high wall, preserves transparent pixels, uses the complete palette and enables dithering. The estimate uses the same settings but never changes the world.
 
+## Commands
+
+`/pixelpainter` is an alias for `/pp`. Help and list panels support clickable commands, hover explanations and page navigation. All player-facing text lives in `messages.yml`, using Adventure MiniMessage and a consistent chat palette.
+
+| Command | Permission | Purpose |
+| --- | --- | --- |
+| `/pp help [page]` | `pp.help` | Browse available commands |
+| `/pp create <image> <direction> <height> [transparent] [palette] [dither]` | `pp.create` | Paint at your current block position |
+| `/pp preview <image> <height> [palette] [dither] [transparent]` | `pp.howmanyblocks` | Estimate dimensions and material counts |
+| `/pp undo [id or image]` | `pp.undo` | Restore the latest accessible painting or a specific journal |
+| `/pp cancel` | `pp.cancel` | Stop preparation or your active world operation |
+| `/pp list [page]` | `pp.list` | Browse source images |
+| `/pp specs <image>` | `pp.specs` | Show source pixel dimensions |
+| `/pp history [page]` | `pp.undo` | Browse accessible undo journals |
+| `/pp materials [palette] [page]` | `pp.materials` | Browse supported blocks |
+| `/pp download <image> <https-url>` | `pp.download` | Download and validate a source image |
+| `/pp delete <image>` | `pp.delete` | Delete a source file, retaining placed art and undo |
+| `/pp reload` | `pp.reload` | Validate and reload all configuration resources |
+
+`/pp howmanyblocks` aliases `preview`; `/pp info` aliases `specs`. Creation, estimates, image inspection, downloads, deletion and history require an in-game player. Other reference commands and reload work from the console. An extension can be omitted if the image name is unambiguous.
+
+If a painting would cross the world border, the error panel offers a **[Paint anyway]** button that confirms the request for a minute. Height limits can never be overridden.
+
+Palettes: `all`, `concrete`, `wool`, `terracotta`. Optional defaults: `transparent=true`, `palette=all`, `dither=false`. Booleans must be `true` or `false`.
+
