@@ -101,4 +101,35 @@ public record Settings(int maxHeight, int maxBlocks, int maxSourcePixels, int ma
             yaml.getBoolean("progress.enabled", true), Set.copyOf(included), Set.copyOf(names(yaml, "palette.exclude", true)),
             Set.copyOf(names(yaml, "downloads.allowed-hosts", false)));
     }
+
+    private static int number(YamlConfiguration yaml, String key, int fallback, int min, int max) {
+        if (yaml.contains(key) && !yaml.isInt(key)) {
+            throw new IllegalArgumentException(key + " must be an integer.");
+        }
+
+        int value = yaml.getInt(key, fallback);
+        if (value < min || value > max) {
+            throw new IllegalArgumentException(key + " must be between " + min + " and " + max + ".");
+        }
+
+        return value;
+    }
+
+    private static Set<String> names(YamlConfiguration yaml, String key, boolean upper) {
+        if (!yaml.contains(key)) {
+            return Set.of();
+        }
+
+        if (!(yaml.get(key) instanceof List<?> list) || list.stream().anyMatch(v -> !(v instanceof String))) {
+            throw new IllegalArgumentException(key + " must be a list of names.");
+        }
+
+        Set<String> result = new HashSet<>();
+
+        for (String value : yaml.getStringList(key)) {
+            result.add(upper ? value.toUpperCase(Locale.ROOT) : value.toLowerCase(Locale.ROOT));
+        }
+
+        return result;
+    }
 }
