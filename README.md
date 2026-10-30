@@ -26,3 +26,9 @@
 - Durable undo journals, original block properties and restart/partial-operation recovery.
 - Configurable MiniMessage panels, material filters and trusted HTTPS source downloads.
 
+## Requirements
+
+- **Java 25 or newer**, including when the server runs Minecraft 1.21.11.
+- **Paper 1.21.11 through 26.3 inclusive.**
+- Minecraft Java Edition clients that can join the server's protocol version.
+
