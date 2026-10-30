@@ -356,5 +356,145 @@ public final class PaintService {
                 player.showBossBar(bar);
             }
         }
+
+        private void step() {
+            Player player = Bukkit.getPlayer(owner);
+
+            if (cancelled || player == null || !player.isOnline()) {
+                end("commands.cancelled");
+
+                return;
+            }
+
+            if (stage == Stage.CHUNKS) {
+                Chunk chunk = world.getChunkAt(chunkX, chunkZ);
+
+                chunk.addPluginChunkTicket(plugin);
+                tickets.add(chunk);
+
+                if (++chunkX > (bounds.maxX() >> 4)) {
+                    chunkX = bounds.minX() >> 4;
+                    chunkZ++;
+                }
+
+                if (chunkZ > (bounds.maxZ() >> 4)) {
+                    stage = undo == null ? Stage.SCAN : Stage.UNDO;
+                }
+
+                progress(tickets.size(), (int) bounds.chunks());
+
+                return;
+            }
+
+            int budget = settings.blocksPerTick();
+
+            if (stage == Stage.SCAN) {
+                while (budget-- > 0 && cursor < plan.size()) {
+                    int index = cursor++;
+                    String after = plan.block(index);
+
+                    if (after == null) {
+                        continue;
+                    }
+
+                    Position p = orientation.position(origin, index % plan.width(), index / plan.width(), plan.height());
+                    var block = world.getBlockAt(p.x(), p.y(), p.z());
+
+                    if (block.getState(false) instanceof TileState) {
+                        throw new PaintException(PaintError.BLOCK_ENTITY);
+                    }
+
+                    String before = block.getBlockData().getAsString();
+
+                    if (!before.equals(after)) {
+                        changes.add(new PaintRecord.Change(p, before, after));
+                    }
+                }
+
+                progress(cursor, plan.size());
+
+                if (cursor == plan.size()) {
+                    if (changes.isEmpty()) {
+                        end("commands.nothing-changed");
+
+                        return;
+                    }
+
+                    PaintRecord record = new PaintRecord(id, owner, world.getUID(), image, System.currentTimeMillis(), bounds, changes);
+
+                    stage = Stage.SAVE;
+                    progress(0, 1);
+                    waiting = true;
+                    plugin.io(() -> {
+                        store.save(record);
+
+                        return record;
+                    }, saved -> {
+                        history.put(saved.id(), saved);
+                        waiting = false;
+
+                        if (active != this) {
+                            return;
+                        }
+
+                        if (cancelled) {
+                            end("commands.cancelled");
+                        } else {
+                            stage = Stage.BUILD;
+                            cursor = 0;
+                        }
+                    }, this::failed);
+                }
+
+                return;
+            }
+
+            List<PaintRecord.Change> targets = undo == null ? changes : undo.changes();
+
+            while (budget-- > 0 && cursor < targets.size()) {
+                var change = targets.get(cursor++);
+                Position p = change.position();
+                var block = world.getBlockAt(p.x(), p.y(), p.z());
+                String current = block.getBlockData().getAsString();
+                String expected = undo == null ? change.before() : change.after();
+                String desired = undo == null ? change.after() : change.before();
+
+                if (current.equals(desired)) {
+                    continue;
+                }
+
+                if (!matches(current, expected) || block.getState(false) instanceof TileState) {
+                    conflicts++;
+                    continue;
+                }
+
+                block.setBlockData(data.computeIfAbsent(desired, Bukkit::createBlockData), false);
+                changed++;
+            }
+
+            progress(cursor, targets.size());
+
+            if (cursor == targets.size()) {
+                if (undo == null) {
+                    end("commands.completed");
+                } else if (conflicts > 0) {
+                    end("commands.undo-conflicts");
+                } else {
+                    waiting = true;
+                    plugin.io(() -> {
+                        store.delete(id);
+
+                        return id;
+                    }, removed -> {
+                        history.remove(removed);
+                        waiting = false;
+
+                        if (active == this) {
+                            end("commands.undone");
+                        }
+                    }, this::failed);
+                }
+            }
+        }
     }
 }
