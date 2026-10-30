@@ -147,4 +147,33 @@ public final class PixelPainter extends JavaPlugin {
             completed.accept(names);
         }, failed);
     }
+
+    /**
+     * Releases world resources and commands before closing the background workers.
+     */
+    @Override
+    public void onDisable() {
+        IIORegistry.getDefaultInstance().deregisterServiceProvider(webpReader);
+
+        if (painter != null) {
+            painter.close();
+        }
+
+        if (commandManager != null) {
+            commandManager.unregisterCommands();
+        }
+
+        if (tasks != null) {
+            tasks.close();
+        }
+    }
+
+    /**
+     * Returns the operational settings currently published on the server thread.
+     *
+     * @return validated settings after successful initialization
+     */
+    public Settings settings() {
+        return configuration.settings();
+    }
 }
