@@ -238,4 +238,36 @@ public final class BlockPalette {
 
         return suffix.isEmpty() ? this : new BlockPalette(entries.stream().filter(e -> e.material.endsWith(suffix)).toList());
     }
+
+    /**
+     * Finds the closest representative color by squared Oklab distance.
+     *
+     * @param rgb packed sRGB sample
+     * @return closest entry, with palette order breaking equal-distance ties
+     */
+    public Entry nearest(int rgb) {
+        double[] lab = ColorMath.lab(rgb);
+        Entry best = entries.getFirst();
+        double distance = Double.MAX_VALUE;
+
+        for (Entry entry : entries) {
+            double candidate = ColorMath.distance(lab, entry.lab);
+
+            if (candidate < distance) {
+                best = entry;
+                distance = candidate;
+            }
+        }
+
+        return best;
+    }
+
+    /**
+     * Returns the unmodifiable candidate list.
+     *
+     * @return entries; cached coordinate arrays must be treated as read-only
+     */
+    public List<Entry> entries() {
+        return entries;
+    }
 }
