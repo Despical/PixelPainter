@@ -52,7 +52,7 @@ Block materials that do not exist on the running server version are skipped, so 
 ## Installation
 
 1. Download the plugin from the [Plugin Hub](https://hub.despical.dev/plugins/pixel-painter), [SpigotMC](https://www.spigotmc.org/resources/pixel-painter-1-8-1-21-11.104770/) or [BuiltByBit](https://builtbybit.com/resources/pixel-painter.50284/), or build it with `./gradlew clean build` or `gradlew.bat clean build`.
-2. Place `pixel-painter-2.0.0.jar` (built to `build/libs/`) in the server's `plugins` directory and restart.
+2. Place `pixel-painter-2.1.0.jar` (built to `build/libs/`) in the server's `plugins` directory and restart.
 3. Put PNG, JPEG or WebP files in `plugins/PixelPainter/images`, or use the download command with a trusted host configured in `config.yml`.
 
 All permissions default to operators. Grant individual `pp.*` children to trusted builders as appropriate. World operations run with those administrative permissions; this plugin does not integrate with region protection or survival inventories.
@@ -166,7 +166,7 @@ PixelPainter reports anonymous, aggregate usage statistics through [bStats](http
 
 JUnit covers image budgets, transparency, dithering, all eight orientations, filename validation, input image limits, trusted downloads, persistent journal recovery and configuration/message validation. CI builds with Java 25, validates Javadocs with warnings treated as errors and uploads the plugin JAR.
 
-Javadoc covers the lifecycle, commands, configuration, geometry, image pipeline, world operations and journal storage. Each production package includes a `package-info.java` overview. Generate the HTML entry point at `build/docs/javadoc/index.html` and the distributable `build/libs/pixel-painter-2.0.0-javadoc.jar` with `javadocJar`.
+Javadoc covers the lifecycle, commands, configuration, geometry, image pipeline, world operations and journal storage. Each production package includes a `package-info.java` overview. Generate the HTML entry point at `build/docs/javadoc/index.html` and the distributable `build/libs/pixel-painter-2.1.0-javadoc.jar` with `javadocJar`.
 
 Repository policies and collaboration resources:
 

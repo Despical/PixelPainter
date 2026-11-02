@@ -46,6 +46,7 @@ import net.kyori.adventure.text.event.HoverEvent;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -415,7 +416,14 @@ public final class PainterCommands extends BaseCommand {
         var settings = plugin.settings();
 
         prepare(player, () -> plugin.images().read(args[0], settings), image -> plugin.messages().send(player,
-            "commands.specs", "image", args[0], "width", image.getWidth(), "height", image.getHeight()));
+            "commands.specs", "image", args[0], "width", image.getWidth(), "height", image.getHeight(),
+            "ratio", ratio(image.getWidth(), image.getHeight())));
+    }
+
+    private static String ratio(int width, int height) {
+        int divisor = BigInteger.valueOf(width).gcd(BigInteger.valueOf(height)).intValue();
+
+        return width / divisor + ":" + height / divisor;
     }
 
     private void handleDownload(CommandSender sender, String[] args) {
