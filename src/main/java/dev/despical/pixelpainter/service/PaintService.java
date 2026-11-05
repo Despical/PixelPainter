@@ -508,36 +508,53 @@ public final class PaintService {
         }
 
         private List<Batch> group(long[] keys) {
-            Map<Long, Integer> counts = new LinkedHashMap<>();
-
-            for (long key : keys) {
-                if (key != SKIP) {
-                    counts.merge(key, 1, Integer::sum);
-                }
-            }
-
-            Map<Long, int[]> members = new LinkedHashMap<>();
-            Map<Long, Integer> filled = new HashMap<>();
-
-            counts.forEach((key, count) -> members.put(key, new int[count]));
+            Map<Long, Bucket> members = new LinkedHashMap<>();
+            long lastKey = SKIP;
+            Bucket last = null;
 
             for (int index = 0; index < keys.length; index++) {
-                if (keys[index] != SKIP) {
-                    members.get(keys[index])[filled.merge(keys[index], 1, Integer::sum) - 1] = index;
+                long key = keys[index];
+
+                if (key == SKIP) {
+                    continue;
                 }
+
+                if (last == null || key != lastKey) {
+                    last = members.computeIfAbsent(key, ignored -> new Bucket());
+                    lastKey = key;
+                }
+
+                last.add(index);
             }
 
             List<Batch> result = new ArrayList<>();
             int budget = settings.blocksPerTick();
 
-            members.forEach((key, indices) -> {
-                for (int from = 0; from < indices.length; from += budget) {
+            members.forEach((key, bucket) -> {
+                for (int from = 0; from < bucket.size; from += budget) {
                     result.add(new Batch((int) (key >> 32), (int) (long) key,
-                        Arrays.copyOfRange(indices, from, Math.min(indices.length, from + budget))));
+                        Arrays.copyOfRange(bucket.indices, from, Math.min(bucket.size, from + budget))));
                 }
             });
 
             return result;
+        }
+
+        /**
+         * Collects the plan indices of one chunk in ascending order without boxing every index.
+         */
+        private static final class Bucket {
+
+            private int[] indices = new int[64];
+            private int size;
+
+            private void add(int index) {
+                if (size == indices.length) {
+                    indices = Arrays.copyOf(indices, size * 2);
+                }
+
+                indices[size++] = index;
+            }
         }
 
         private void runBatch() {
