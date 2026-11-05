@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 /**
@@ -91,7 +92,10 @@ public final class BlockPalette {
      */
     public static final Map<String, Set<String>> DECAYING = decaying();
 
+    private static final int MAX_CACHED_COLORS = 1 << 18;
+
     private final List<Entry> entries;
+    private final Map<Integer, Entry> matches = new ConcurrentHashMap<>();
 
     private static Map<String, Set<String>> decaying() {
         Map<String, Set<String>> map = new HashMap<>();
@@ -237,11 +241,32 @@ public final class BlockPalette {
 
     /**
      * Finds the closest representative color by squared Oklab distance.
+     * <p>
+     * Results are remembered per palette in a bounded, thread-safe cache, so repeated colors and repeated paintings
+     * with the same palette skip the search. The cache is dropped whole when it reaches its size limit.
      *
      * @param rgb packed sRGB sample
      * @return closest entry, with palette order breaking equal-distance ties
      */
     public Entry nearest(int rgb) {
+        Entry cached = matches.get(rgb);
+
+        if (cached != null) {
+            return cached;
+        }
+
+        Entry found = search(rgb);
+
+        if (matches.size() >= MAX_CACHED_COLORS) {
+            matches.clear();
+        }
+
+        matches.put(rgb, found);
+
+        return found;
+    }
+
+    private Entry search(int rgb) {
         double[] lab = ColorMath.lab(rgb);
         Entry best = entries.getFirst();
         double distance = Double.MAX_VALUE;

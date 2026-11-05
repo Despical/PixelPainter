@@ -24,8 +24,11 @@ import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
-import java.util.HashMap;
+import java.awt.image.DataBufferInt;
+import java.util.ArrayList;
+import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -107,8 +110,9 @@ public final class ImagePlanner {
         }
 
         String[] blocks = new String[width * height];
-        Map<String, Integer> materials = new LinkedHashMap<>();
-        Map<Integer, BlockPalette.Entry> cache = new HashMap<>();
+        Map<BlockPalette.Entry, int[]> counts = new IdentityHashMap<>();
+        List<BlockPalette.Entry> used = new ArrayList<>();
+        int[] pixels = ((DataBufferInt) scaled.getRaster().getDataBuffer()).getData();
 
         double[][] errors = new double[height + 1][(width + 2) * 3];
 
@@ -118,7 +122,7 @@ public final class ImagePlanner {
             }
 
             for (int x = 0; x < width; x++) {
-                int argb = scaled.getRGB(x, y);
+                int argb = pixels[y * width + x];
 
                 if (transparent && ((argb >>> 24) == 0 || (argb >>> 24) < alphaThreshold)) {
                     continue;
@@ -129,10 +133,18 @@ public final class ImagePlanner {
                 int g = channel(argb >> 8, errors[y][offset + 1]);
                 int b = channel(argb, errors[y][offset + 2]);
                 int rgb = (r << 16) | (g << 8) | b;
-                BlockPalette.Entry entry = cache.computeIfAbsent(rgb, palette::nearest);
+                BlockPalette.Entry entry = palette.nearest(rgb);
 
                 blocks[y * width + x] = entry.blockData();
-                materials.merge(entry.material(), 1, Integer::sum);
+
+                int[] count = counts.get(entry);
+
+                if (count == null) {
+                    counts.put(entry, count = new int[1]);
+                    used.add(entry);
+                }
+
+                count[0]++;
 
                 if (dither) {
                     int[] channels = {r, g, b};
@@ -147,6 +159,12 @@ public final class ImagePlanner {
                     }
                 }
             }
+        }
+
+        Map<String, Integer> materials = new LinkedHashMap<>();
+
+        for (BlockPalette.Entry entry : used) {
+            materials.merge(entry.material(), counts.get(entry)[0], Integer::sum);
         }
 
         return new PaintPlan(width, height, blocks, materials);
