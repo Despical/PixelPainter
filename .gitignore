@@ -37,3 +37,6 @@ bin/
 
 ### Mac OS ###
 .DS_Store
+
+# Marketplace art and designs live in the docs repository
+/assets/

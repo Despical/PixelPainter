@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/pixelpainter-icon.svg" width="128" height="128" alt="PixelPainter icon">
+  <img src="https://docs.despical.dev/images/pixel-painter/icon.png" width="128" height="128" alt="PixelPainter icon">
 </p>
 
 <h1 align="center">PixelPainter</h1>
