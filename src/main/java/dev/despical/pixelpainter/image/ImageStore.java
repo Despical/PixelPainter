@@ -231,7 +231,14 @@ public final class ImageStore {
         Path temporary = Files.createTempFile(folder, ".download-", ".tmp");
 
         try {
-            URI uri = URI.create(link);
+            URI uri;
+
+            try {
+                uri = URI.create(link.strip());
+            } catch (IllegalArgumentException exception) {
+                throw new PaintException(PaintError.DOWNLOAD_HOST);
+            }
+
             boolean received = false;
             long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(30);
 
@@ -243,6 +250,7 @@ public final class ImageStore {
                 connection.setConnectTimeout(5000);
                 connection.setReadTimeout(5000);
                 connection.setRequestProperty("User-Agent", "PixelPainter/2.0");
+                connection.setRequestProperty("Accept", "image/*");
 
                 try {
                     int status = connection.getResponseCode();
@@ -254,7 +262,12 @@ public final class ImageStore {
                             throw new PaintException(PaintError.DOWNLOAD_FAILED);
                         }
 
-                        uri = uri.resolve(location);
+                        try {
+                            uri = uri.resolve(location);
+                        } catch (IllegalArgumentException exception) {
+                            throw new PaintException(PaintError.DOWNLOAD_FAILED);
+                        }
+
                         continue;
                     }
 
